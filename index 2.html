@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>魔王 vs 勇者</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#0b0b14;color:#eee;font:15px/1.5 "Hiragino Kaku Gothic ProN",Meiryo,sans-serif;display:flex;justify-content:center;user-select:none;-webkit-user-select:none}
+#app{width:100%;max-width:520px;min-height:100vh;display:flex;flex-direction:column}
+#hud{padding:8px 10px;background:#1a1a2e;font-weight:bold;font-size:14px;border-bottom:2px solid #55a}
+canvas{width:100%;aspect-ratio:160/144;image-rendering:pixelated;touch-action:none;display:block;background:#000}
+#bi{min-height:22px;padding:2px 10px;font-size:13px;color:#ff8}
+#msg{padding:8px 10px;min-height:68px;white-space:pre-wrap}
+#btns{display:grid;gap:8px;padding:0 10px 16px}
+button{font:inherit;padding:13px;border:2px solid #fff;background:#223;color:#fff;border-radius:4px}
+button:disabled{opacity:.4}
+button:active{background:#66a}
+#cv{position:fixed;inset:0;background:#000;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;z-index:9}
+#cv .w{border:4px double #fff;padding:24px 18px;max-width:440px;background:#101030}
+#ct{font-size:21px;font-weight:bold;color:#fd4;margin:0 0 14px}
+#cb{white-space:pre-wrap;margin-bottom:18px}
+#cl{cursor:pointer;display:inline-block;border:2px solid #fff;padding:12px 18px;background:#223}
+html,body{overscroll-behavior:none}
+#stick{position:fixed;display:none;width:96px;height:96px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);z-index:5;pointer-events:none}
+#knob{position:absolute;left:28px;top:28px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.7)}
+#tt{position:fixed;inset:0;background:radial-gradient(#26124a,#05050c);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10;padding:24px;text-align:center}
+#tc{width:min(320px,80vw);aspect-ratio:160/64;image-rendering:pixelated}
+#tt h1{font-size:34px;margin:18px 0 4px;color:#fd4;text-shadow:3px 3px 0 #a12}
+#tt .sub{color:#ccd;letter-spacing:.2em}
+#ts{margin-top:44px;border:2px solid #fff;padding:12px 20px;animation:bl 1.2s steps(2) infinite}
+@keyframes bl{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){#ts{animation:none}}
+</style></head><body>
+<div id="app"><div id="hud"></div><canvas id="c"></canvas><div id="bi"></div><div id="msg"></div><div id="btns"></div></div>
+<div id="stick"><div id="knob"></div></div>
+<div id="tt"><canvas id="tc" width="160" height="64"></canvas><h1>魔王 vs 勇者</h1><div class="sub">2人対戦RPG</div><div id="ts">画面をタップしてスタート</div></div>
+<div id="cv"><div class="w"><div id="ct"></div><div id="cb"></div><div id="cl"></div></div></div>
+<script>
+const $=i=>document.getElementById(i),cv=$('c'),x=cv.getContext('2d');cv.width=160;cv.height=144;
+const mk=s=>s.split('/'),rnd=n=>Math.random()*n|0,pick=a=>a[rnd(a.length)],sl=ms=>new Promise(r=>setTimeout(r,ms));
+const P={k:'#111',w:'#fff',s:'#f5c9a0',b:'#3a6ee8',B:'#1d3a8a',r:'#d03030',R:'#701818',y:'#f0d020',g:'#3cb043',G:'#1f6f2a',p:'#8a3cc0',P:'#4a1e6e',n:'#8a5a2a',e:'#9aa0aa',E:'#555a66',o:'#e88a20',c:'#40c8e0'};
+const S={
+hero:mk('..nnnn../.nssssn./..sksk../..ssss../.bbbbbb./sbbbbbbs/.bb..bb./.nn..nn.'),
+demon:mk('y.yyyy.y/.yyyyyy./.rrrrrr./.rkrrkr./..rrrr../.PPPPPP./PPPyyPPP/.PP..PP.'),
+bar:mk('..nnnn../.nssssn./..sksk../..ssss../.wwwwww./rwwwwwwr/.ww..ww./.nn..nn.'),
+trn:mk('..eeee../.eEEEEe./..sksk../..ssss../.eeeeee./eeoeeoee/.ee..ee./.EE..EE.'),
+priest:mk('..PPPP../.PPPPPP./.PkPPkP./.PPssPP./.PPPPPP./PPPrrPPP/PPPPPPPP/.PPPPPP.'),
+gd:mk('..gggg../.gggggg./..sksk../..ssss../.GGGGGG./sGGyyGGs/.GG..GG./.nn..nn.'),
+mer:mk('..oooo../.oooooo./..sksk../..ssss../.nnnnnn./snnyynns/.nn..nn./.EE..EE.'),
+eng:mk('r......r/.rrrrrr./.rkrrkr./..rrrr../.EEEEEE./EEoEEoEE/.EE..EE./.nn..nn.'),
+dm:mk('..kkkk../.kkkkkk./.kykkyk./.kkkkkk./.PPPPPP./kPPyyPPk/.PP..PP./.kk..kk.'),
+butl:mk('..wwww../.wwwwww./..sksk../..ssss../.kkkkkk./skkwwkks/.kk..kk./.kk..kk.'),
+inf:mk('..cccc../.cccccc./.ckccck./..cccc../.wwwwww./cwwyywwc/.ww..ww./.EE..EE.'),
+sld:mk('..eeee../.eeeeee./.ekeeke./..eeee../.rrrrrr./ErrrrrrE/.rr..rr./.EE..EE.'),
+ftl:mk('..pppp../.pppppp./.pkppkp./..pppp../.PPPPPP./yPPPPPPy/.PP..PP./.PP..PP.'),
+trt:mk('......../..EEEE../.EEEEEE./EEkEEkEE/.EEEEEE./..rrrr../.eeeeee./eee..eee'),
+slime:mk('......../...cc.../..cccc../.cccccc./cckccckc/cccccccc/cccccccc/.cccccc.'),
+zombie:mk('..gggg../.gGGGGg./.gkGGkg./..gggg../.eeeeee./geeeeeeg/.ee..ee./.EE..EE.'),
+dragon:mk('R......R/RR.rr.RR/RRrrrrRR/.rkrrkr./.rrooor./..rooor./.rrrrrr./.rr..rr.'),
+evil:mk('..rrrr../.EEEEEE./.ErEErE./..EEEE../eEEEEEEe/eEEEEEEe/.EE..EE./.ee..ee.'),
+sux:mk('..pppp../.pppppp./.pkppkp./..pppp../.PPPPPP./pPPrrPPp/.PP..PP./.pp..pp.'),
+mimic:mk('......../......../.nnnnnn./nnykkynn/nrrrrrrn/nwnwnwnn/nnnnnnnn/.nnnnnn.'),
+warr:mk('..rrrr../.rssssr./..sksk../..ssss../.rrrrrr./srrrrrre/.rr..rr./.nn..nn.'),
+mage:mk('...pp.../..pppp../..sksk../..ssss../.pppppp./sppyypps/.pp..pp./.nn..nn.'),
+prst:mk('..wwww../.wwwwww./..sksk../..ssss../.wwyyww./swwyywws/.ww..ww./.nn..nn.'),
+vil:mk('...rr.../..rrrr../.rrrrrr./rrrrrrrr/.wwwwww./.wyywnw./.wyywnw./.wwwwww.'),
+cave:mk('..EEEE../.EEEEEE./EEEkkEEE/EEkkkkEE/EEkkkkEE/EEkkkkEE/EEkkkkEE/eeeeeeee'),
+fnt:mk('..c..c../...cc.../..cccc../eeeeeeee/ecccccce/eccwwcce/ecccccce/eeeeeeee'),
+chst:mk('......../.nnnnnn./nyyyyyyn/nnnyynnn/nnnyynnn/nnnnnnnn/nnnnnnnn/........'),
+cstl:mk('r.r..r.r/rrr..rrr/EEEEEEEE/EkEEEEkE/EEEkkEEE/EEkkkkEE/EEkkkkEE/EEEEEEEE'),
+q:mk('..yyyy../.yy..yy./....yy../...yy.../...yy.../......../...yy.../........'),
+pnr:mk('..oooo../.oooooo./..sksk../..ssss../.nnnnnn./snnoonns/.nn..nn./.EE..EE.'),
+col:mk('..pppp../.pppppp./..sksk../..ssss../.pppppp./sppccpps/.pp..pp./.EE..EE.'),
+qry:mk('..eeee../.eEEEEe./.eEoEEe./.eEEEEe./.EEEEEE./eEEkkEEe/.EE..EE./eee..eee'),
+trg:mk('...rr.../..rrrr../.rrrrrr./..rr.r../..EEEE../.EEEEEE./..EE.EE./.ee..ee.')};
+function sp(n,px,py,s=2,g=x){const d=S[n];for(let j=0;j<8;j++)for(let i=0;i<8;i++){const c=d[j][i];if(c!='.'){g.fillStyle=P[c];g.fillRect(px+i*s,py+j*s,s,s)}}}
+const TY=['スライム','ゾンビ','あくまのよろい','ドラゴン'],SP={'スライム':'slime','ゾンビ':'zombie','あくまのよろい':'evil','ドラゴン':'dragon','ミミック':'mimic','サキュバス':'sux'};
+const RT={2:70,3:50,4:30,5:15,6:5};
+const roll=()=>{const n=rnd(100);return TY[n<40?0:n<70?1:n<90?2:3]};
+const rollSummon=()=>{const n=rnd(100);return n<35?'スライム':n<62?'ゾンビ':n<80?'あくまのよろい':n<90?'ドラゴン':'サキュバス'};
+const TM={'スライム':[1,.8],'ゾンビ':[1.2,1],'あくまのよろい':[1.4,1.2],'ドラゴン':[1.7,1.5],'ミミック':[1.2,1],'サキュバス':[1.3,1.1]};
+const mst=m=>{let atk=Math.round((6+3*m.r)*TM[m.t][1]);if(m.t=='ゾンビ')atk=Math.round(atk*(1+.15*H.party.length));return{hp:Math.round((30+12*m.r)*TM[m.t][0]),atk}};
+const NM={vil:'村/街',cave:'洞窟',fnt:'精霊の泉',chst:'宝箱',cstl:'魔王城',mer:'商人',qry:'採石場',trg:'訓練場'};
+const TPOOL=['vil','cave','fnt','chst','mer','qry','trg'];
+const ITEMS=[['木こりのにんぎょう',3,'次のトラップを1回回避する(消費)'],['へんげの杖',4,'次の戦闘時、召喚モンスターのレア度を1段階下げる(消費・自動発動)'],['2倍増幅剤',5,'次の戦闘(最終戦除く)で攻撃・防御が2倍になる(消費)'],['けむり玉',4,'次の戦闘(最終戦除く)を50%の確率で回避する。報酬なし(消費)'],['馬車',15,'仲間の上限が5になる(永久)'],['いやし草',3,'HPを50回復する(消費)'],['秘薬',6,'HPを全回復する(消費)']];
+function planPick(){const bonus=Math.min(60,H.townRate||0),others=TPOOL.filter(t=>t!='vil'),baseW=100/TPOOL.length,vilW=baseW+bonus,eachOther=(100-vilW)/others.length,w=TPOOL.map(t=>t=='vil'?vilW:eachOther);let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<TPOOL.length;i++){r-=w[i];if(r<=0)return TPOOL[i]}return TPOOL[TPOOL.length-1]}
+async function trySmoke(){if(!H.itemSmoke)return false;H.itemSmoke=false;if(rnd(2)==0){await say('【 けむり玉を使用！ 】\n戦闘を回避した！（報酬なし）');return true}await say('【 けむり玉を使用！ 】\nしかし回避できなかった…');return false}
+const CL=['戦士','魔法つかい','僧侶'],EF=['攻撃力+','固定ダメージ+','防御力+'],EM=[2,3,2],CS=['warr','mage','prst'],SKN=['ためる','斬撃波'];
+const pr=(pen=0)=>{const k=(G.turn-1)/(G.maxTurn-1),p3=Math.max(0,.05+.3*k-pen),p2=Math.max(0,.2+.3*k-pen),n=Math.random();return n<p3?3:n<p3+p2?2:1};
+let LFD=0;
+let G={turn:1,maxTurn:20,side:'',act:0,fog:false,pos:-1,q:[],tD:0,tH:0,tiles:[],plan:[],loot:[],pendingMerchant:null,pendingGems:0,pendingQuarry:0,pendingTrain:null,soldInfo:null,demonNote:[],turretNote:'',dmn:0,spy:null,over:false},
+D={hp:300,mhp:300,build:0,bank:0,tier:1,breedLast:-1,breedStreak:0},
+H={hp:100,mhp:100,atk:10,def:2,gear:0,story:1,party:[],skills:[],plan:null,bank:0,bonus:false,gems:0,gatherLast:-1,gatherStreak:0,immuneTurn:-1,nextTile:null,cleave:false,doubleTurn:-1,cursedCave:false,townRate:0,quarryLv:1,trainLv:1,maxParty:3,itemsBought:new Set(),itemTrap:false,itemHenge:false,itemDouble:false,itemSmoke:false};
+const pb=c=>H.party.filter(p=>p.c==c&&!p.spy).reduce((a,p)=>a+p.r,0);
+const HA=()=>H.atk+H.gear*4+H.story*2+pb(0)*2,HD=()=>H.def+H.gear*2+pb(2)*2;
+const ROOMS={d:{f:['#2a1838','#331f44'],me:'demon',npcs:[['邪教の司祭','priest',2,2],['占い師','ftl',5,3],['悪魔の技師','eng',7,2],['闇の商人','dm',2,5],['魔王の執事','butl',7,5]]},
+h:{f:['#3c7a3c','#468a44'],me:'hero',npcs:[['酒場マスター','bar',2,2],['訓練教官','trn',7,2],['情報屋','inf',5,2],['兵隊','sld',2,5],['開拓屋','pnr',2,7],['コレクター','col',7,7]]}};
+function npcsFor(s){if(s=='h'&&G.turn>=5)return[...ROOMS.h.npcs,['砲台くん','trt',5,4]];return ROOMS[s].npcs}
+let scene='',room=null,me={x:5,y:7},face=[0,-1],canMove=false,sh=0,BT=[];
+function cm(v){canMove=v;document.body.style.touchAction=v?'none':'pan-y'}
+const ent=(n,s,x,y)=>({n,s,x,y});
+/* ---- 描画 ---- */
+const OX=7,OY=18,TF=Array.from({length:45},(_,i)=>[(i*67+13)%158,(i*41+29)%142]);
+const nd=i=>{if(i<0)return{x:OX,y:OY-14};const r=i/6|0,c=r%2?5-i%6:i%6;return{x:OX+c*26,y:OY+r*26}};
+function draw(t){const bb=(t/400|0)%2;x.fillStyle='#000';x.fillRect(0,0,160,144);
+if(scene=='room'){for(let j=0;j<9;j++)for(let i=0;i<10;i++){const w=i==0||j==0||i==9||j==8;x.fillStyle=w?'#111':room.f[(i+j)&1];x.fillRect(i*16,j*16,16,16)}
+room.npcs.forEach(n=>sp(n[1],n[2]*16,n[3]*16+bb));sp(room.me,me.x*16,me.y*16+bb)}
+else if(scene=='path'){x.fillStyle='#20301f';x.fillRect(0,0,160,144);x.fillStyle='#2c4429';TF.forEach(([a,b])=>x.fillRect(a,b,2,2));
+for(let i=0;i<G.maxTurn;i++){const a=nd(i-1),b=nd(i),dx=Math.sign(b.x-a.x),dy=Math.sign(b.y-a.y);
+if(i>0){x.fillStyle=i<=G.pos?'#e8d080':'#3f5a3c';for(let k=10;k<=16;k+=3)x.fillRect(a.x+8+dx*k-1,a.y+8+dy*k-1,2,2)}
+const seen=i<=G.pos&&G.tiles[i];x.globalAlpha=seen?1:.45;sp(seen?G.tiles[i]:'q',b.x,b.y);x.globalAlpha=1}
+let p=nd(G.pos);if(G.walk){const w=G.walk,u=Math.min(1,(Date.now()-w.t0)/900),A=nd(w.a),B=nd(w.b);p={x:A.x+(B.x-A.x)*u,y:A.y+(B.y-A.y)*u}}
+if(G.walk||G.pos<0)sp('hero',p.x,p.y+bb,2);else{x.strokeStyle='#ff0';x.strokeRect(p.x-1.5,p.y-1.5,19,19);sp('hero',p.x+9,p.y+9,1)}}
+else if(scene=='bat'){x.fillStyle='#15152a';x.fillRect(0,0,160,144);x.fillStyle='#26264a';x.fillRect(0,64,160,80);
+BT.forEach(e=>sp(e.n,e.x+sh,e.y+bb*2,e.s))}}
+(function L(t){draw(t);requestAnimationFrame(L)})(0);
+async function shake(){for(let i=0;i<6;i++){sh=i%2?-3:3;await sl(40)}sh=0}
+/* ---- UI部品 ---- */
+function hud(){let s=`ターン ${G.turn}/${G.maxTurn}`;if(G.side=='d')s+=`　魔王 HP ${D.hp}/${D.mhp}　行動 ${G.act}回`;else if(G.side=='h')s+=`　勇者 HP ${H.hp}/${H.mhp}　行動 ${G.act}回`;$('hud').textContent=s}
+function setBtns(a){const e=$('btns');e.innerHTML='';a.forEach(([l,f,d])=>{const b=document.createElement('button');b.textContent=l;b.onclick=()=>f();if(d)b.disabled=true;e.appendChild(b)})}
+function menu(t,a){cm(false);$('msg').textContent=t;setBtns(a)}
+function say(t,b='次へ'){return new Promise(r=>menu(t,[[b,r]]))}
+function note(t,ms=900){cm(false);$('msg').textContent=t;setBtns([]);return sl(ms)}
+function ask(t,l,nb){return new Promise(r=>menu(t,[...l.map((s,i)=>[s,()=>r(i)]),...(nb?[]:[['戻る',()=>r(-1)]])]))}
+function idle(){cm(!G.over);$('msg').textContent='画面のどこでもドラッグして移動。NPCの隣でタップすると話しかけられる。';setBtns([['行動を終了する',confirmEnd]]);hud()}
+function confirmEnd(){menu(`行動を終了しますか？\n残りの行動 ${G.act}回分のうち、1回分だけ次回に持ち越されます。`,[['終了する',endPhase],['戻る',idle]])}
+function cover(t,b,f,l='画面をタップして進む',bo){$('ct').textContent=t;$('cb').textContent=b;$('cb').style.textAlign='';$('cl').textContent=l;$('msg').textContent='';$('bi').textContent='';setBtns([]);scene='';cm(false);const v=$('cv'),t0=Date.now();v.style.display='flex';v.onclick=e=>{if(bo&&!e.target.closest('#cl'))return;if(Date.now()-t0<400)return;v.style.display='none';f()}}
+/* ---- 入力(仮想コントローラーなし) ---- */
+const stk=$('stick'),knob=$('knob');let st=null;
+function adj(){const a=room.npcs.filter(n=>Math.abs(n[2]-me.x)+Math.abs(n[3]-me.y)==1);return a.find(n=>n[2]==me.x+face[0]&&n[3]==me.y+face[1])||a[0]}
+function dirOf(){if(Math.hypot(st.dx,st.dy)<16)return null;return Math.abs(st.dx)>Math.abs(st.dy)?[Math.sign(st.dx),0]:[0,Math.sign(st.dy)]}
+document.addEventListener('pointerdown',e=>{if(!canMove||st||e.target.closest('button'))return;
+st={id:e.pointerId,ox:e.clientX,oy:e.clientY,dx:0,dy:0,t:Date.now(),mv:false,tg:e.target};
+stk.style.cssText=`display:block;left:${e.clientX-48}px;top:${e.clientY-48}px`;knob.style.transform='translate(0,0)';
+st.iv=setInterval(()=>{if(!canMove||!st)return;const d=dirOf();if(d){st.mv=true;go(...d)}},150)});
+document.addEventListener('pointermove',e=>{if(!st||e.pointerId!=st.id)return;let dx=e.clientX-st.ox,dy=e.clientY-st.oy;const d=Math.hypot(dx,dy);if(d>40){dx*=40/d;dy*=40/d}st.dx=dx;st.dy=dy;knob.style.transform=`translate(${dx}px,${dy}px)`});
+document.addEventListener('pointerup',e=>{if(!st||e.pointerId!=st.id)return;clearInterval(st.iv);stk.style.display='none';const s=st;st=null;
+if(!s.mv&&Date.now()-s.t<450&&Math.hypot(s.dx,s.dy)<16&&canMove){let n=null;
+if(s.tg===cv){const r=cv.getBoundingClientRect(),tx=(e.clientX-r.left)/r.width*10|0,ty=(e.clientY-r.top)/r.height*9|0;n=room.npcs.find(n=>n[2]==tx&&n[3]==ty&&Math.abs(n[2]-me.x)+Math.abs(n[3]-me.y)==1)}
+n=n||adj();if(n)talk(n)}});
+document.addEventListener('pointercancel',e=>{if(st&&e.pointerId==st.id){clearInterval(st.iv);stk.style.display='none';st=null}});
+function go(a,b){face=[a,b];const nx=me.x+a,ny=me.y+b;if(nx<1||ny<1||nx>8||ny>7||room.npcs.some(n=>n[2]==nx&&n[3]==ny))return;me.x=nx;me.y=ny}
+addEventListener('keydown',e=>{if(!canMove)return;const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(k){e.preventDefault();go(...k)}});
+/* ---- コマンド ---- */
+const CMD={h:{
+'酒場マスター':[['仲間を集める',async()=>{if(H.party.length>=H.maxParty){await say(`仲間は最大${H.maxParty}人までだ。`);return false}
+const bo=H.bonus;H.bonus=false;const streak=(H.gatherLast===G.turn-1)?H.gatherStreak+1:1,pen=streak>1?.05:0;
+const r=Math.min(3,pr(pen)+(bo?1:0)),c=rnd(3);H.gatherLast=G.turn;H.gatherStreak=streak;
+let spy=false;if(G.spy&&G.spy.turnsLeft>0&&c===G.spy.cls){spy=true;G.spy=null}
+H.party.push({c,r,spy});return `仲間【${CL[c]} ${'★'.repeat(r)}】が加わった！\n（${EF[c]}${r*EM[c]}）`}],
+['仲間と別れる',async()=>{if(!H.party.length){await say('別れる仲間がいない。');return false}const i=await ask('誰と別れる？',H.party.map(p=>CL[p.c]+' '+'★'.repeat(p.r)));if(i<0)return false;const p=H.party.splice(i,1)[0];return `${CL[p.c]}と別れた。`}]],
+'訓練教官':[['モンスターを倒す',async()=>{H.atk+=3;H.mhp+=8;H.hp+=8;return '訓練でモンスターを倒した！\n攻撃力+3　最大HP+8'}],
+['特技を習得する',async()=>{const cand=SKN.filter(s=>!H.skills.includes(s));if(!cand.length){await say('もう習得できる特技がない。');return false}
+const i=await ask('どの特技を習得する？',cand.map(s=>s=='ためる'?'ためる\n（次の攻撃に力を溜め、その次の攻撃が2.5倍）':'斬撃波\n（通常攻撃の1.3倍のダメージ）'));if(i<0)return false;H.skills.push(cand[i]);return `特技【${cand[i]}】を習得した！`}]],
+'情報屋':[['情報を集める',async()=>{if(Math.random()<.5){const nt=G.turn>=G.maxTurn?'cstl':G.plan[G.pos+1];return `次のマスの種類が分かった：【${NM[nt]}】`}
+if(!G.q.length)return '現在、魔王軍に仕込まれた行動は無いようだ。';const e=pick(G.q);return `魔王軍の仕込みが1つ分かった：【${e.k=='sum'?'モンスターの召喚':e.n}】`}],
+['情報を売る',async()=>{if(G.soldInfo){await say('その情報はもう売った後だ。');return false}
+const i=await ask('何を売る？',['勇者の体力','仲間の種類']);if(i<0)return false;
+G.soldInfo=i==0?{type:'hp',val:`${H.hp}/${H.mhp}`}:{type:'party',val:H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'};
+return '情報を売った。\n（魔王に伝わるのは次の魔王ターン開始時。見返りの宝石は次の勇者ターンにもらえる）'}]],
+'兵隊':[['作戦を練る',async()=>{const N=['ガンガンいこうか','いろいろやるか','いのちを守ろう'],i=await ask('作戦を練る。次の戦闘の1回だけ有効。',['ガンガンいこうか\n（1ターン目の攻撃が1.2倍）','いろいろやるか\n（1ターン目に習得した特技を使う）','いのちを守ろう\n（3分の1の確率でダメージを受けない）']);if(i<0)return false;H.plan=['gan','iro','inochi'][i];return `作戦【${N[i]}】を決めた。\n次の戦闘の間だけ発動する。`}]],
+'開拓屋':[['街の開拓',async()=>{H.townRate=(H.townRate||0)+5;for(let i=G.pos+1;i<G.plan.length;i++)G.plan[i]=planPick();return `街の開拓を行った！\n村/街の出現率が+5%された（現在+${H.townRate}%）。\nまだ訪れていない先のマスにも反映された。`}],
+['採石場の強化',async()=>{if(H.quarryLv>=5){await say('採石場はこれ以上強化できない（最大Lv5）。');return false}H.quarryLv++;return `採石場を強化した！（Lv${H.quarryLv}）\n採石場マスで得られる宝石の数が増える。`}],
+['訓練場の強化',async()=>{if(H.trainLv>=5){await say('訓練場はこれ以上強化できない（最大Lv5）。');return false}H.trainLv++;return `訓練場を強化した！（Lv${H.trainLv}）\n訓練場マスで得られる能力上昇が増える。`}]],
+'コレクター':[['宝石と交換する',async()=>{const opts=ITEMS.map((it,i)=>H.itemsBought.has(i)?`${it[0]}（交換済み）`:`${it[0]}（宝石${it[1]}個）\n${it[2]}`);
+const i=await ask(`所持している宝石：${H.gems}個\n交換するアイテムを選んでください。`,opts);if(i<0)return false;
+if(H.itemsBought.has(i)){await say('そのアイテムはもう交換済みだ。');return false}
+if(H.gems<ITEMS[i][1]){await say('宝石が足りない。');return false}
+H.gems-=ITEMS[i][1];H.itemsBought.add(i);
+if(i==0)H.itemTrap=true;else if(i==1)H.itemHenge=true;else if(i==2)H.itemDouble=true;else if(i==3)H.itemSmoke=true;else if(i==4)H.maxParty=5;
+else if(i==5){const h=Math.min(50,H.mhp-H.hp);H.hp+=h;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復した！`}
+else if(i==6){const h=H.mhp-H.hp;H.hp=H.mhp;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復し、全回復した！`}
+return `【${ITEMS[i][0]}】と交換した！\n${ITEMS[i][2]}`}]],
+'砲台くん':[['魔王城に向かって攻撃する',async()=>{const dmg=10+rnd(21);D.hp-=dmg;let extra='';if(Math.random()<.3&&D.build>0){D.build--;extra='／魔王城の構築度を1下げた'}G.turretNote=`砲台くんの砲撃：${dmg}ダメージ${extra}`;
+if(checkDemonDead())return '砲台くんが魔王城を撃った！';return '砲台くんが魔王城へ向けて砲撃した！\n（効果は魔王軍への報告でわかる）'}]]},
+d:{
+'邪教の司祭':[['モンスターの召喚',async()=>{G.q.push({k:'sum',r:D.tier});return '召喚の儀式を行った。\n何が現れるかは、発動時に決まる。'}],
+['モンスターの配合',async()=>{if(D.tier>=6){await say('これ以上、強いモンスターは配合できない。');return false}
+const streak=(D.breedLast===G.turn-1)?D.breedStreak+1:1,pen=streak>1?5:0,pc=Math.max(5,RT[D.tier+1]-pen);
+const y=await ask(`配合の成功率は ${pc}%。\nやってみる？`,['配合する']);if(y<0)return false;
+D.breedLast=G.turn;D.breedStreak=streak;
+if(Math.random()*100<pc){D.tier++;return '配合成功！\n以前より強力なモンスターを召喚できるようになった。'+(D.tier<6?`\n（次の配合の成功率 ${RT[D.tier+1]}%）`:'\n（これ以上の配合はできない）')}return '配合失敗…'}]],
+'占い師':[['勇者軍をうらなう',async()=>{const r=rnd(3);if(r==0)return `占いの結果：勇者の体力は ${H.hp}/${H.mhp}`;
+if(r==1)return `占いの結果：仲間の種類は【${H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'}】`;
+const nt=G.turn>=G.maxTurn?'cstl':G.plan[G.pos+1];return `占いの結果：勇者の次のマスは【${NM[nt]}】`}]],
+'悪魔の技師':[['トラップの設置',async()=>{const t=pick(['呪いの霧','落とし穴','毒の罠']);if(t=='呪いの霧')G.fog=true;else G.q.push({k:'trap',n:t,d:t=='落とし穴'?15+rnd(11):8+rnd(5)});return `トラップ【${t}】を仕掛けた。`}],
+['スパイを送り込む',async()=>{if(G.spy){await say('すでにスパイを送り込んでいる。');return false}const i=await ask('スパイをどの職業に化けさせる？',CL);if(i<0)return false;G.spy={cls:i,turnsLeft:3};return `スパイを【${CL[i]}】に化けさせ、送り込んだ。`}]],
+'闇の商人':[['闇の商人を送り込む',async()=>{G.dmn=1;return '闇の商人を送り込んだ。\n（勇者の次のマスが商人マスなら、商人の品の効果が真逆かつ強烈になる）'}]],
+'魔王の執事':[['魔王城の構築',async()=>{D.build++;return `魔王城を構築した（構築度 ${D.build}）`}],
+['精気を吸う',async()=>{G.q.push({k:'trap',n:'精気の吸収',d:15+rnd(16),drain:true});return '勇者の精気を吸う呪いを仕込んだ。\n（行動回数を2回分消費した）\n（効果は次の閲覧フェーズでわかる）'},2]]}};
+function talk(n){cm(false);menu(`【${n[0]}】何をする？`,[...CMD[G.side][n[0]].map(c=>{const cost=c[2]||1;
+if(G.used.has(c[0]))return[c[0]+'（今ターン選択済み）',()=>{},1];
+if(cost>G.act)return[c[0]+`（残り行動不足・${cost}回必要）`,()=>{},1];
+return[c[0],()=>act(c)]}),['やめる',idle]])}
+async function act(c){let f=c[1],k=c[0],cost=c[2]||1;
+if(G.side=='h'&&G.fog){G.fog=false;await say('【 呪いの霧が発動！ 】\n選択肢とは別の行動をする！');const o=Object.values(CMD.h).flat().filter(z=>z[0]!=c[0]&&!G.used.has(z[0])&&(z[2]||1)<=G.act);if(o.length){const z=pick(o);f=z[1];k=z[0];cost=z[2]||1}}
+const r=await f();if(G.over)return;if(r===false){idle();return}
+G.used.add(k);G.act-=cost;hud();
+if(G.act<=0){await say(r+'\n\n行動回数を使い切った。');if(G.over)return;endPhase()}else menu(r+`\n\n残り行動 ${G.act}回`,[['続ける',idle]])}
+/* ---- フェーズ進行 ---- */
+async function startPhase(s){G.side=s;G.used=new Set();const o=s=='d'?D:H;G.act=Math.min(3,2+o.bank);o.bank=0;room={...ROOMS[s],npcs:npcsFor(s)};scene='room';me={x:5,y:7};hud();
+if(s=='d'){const notes=[];
+if(G.spy){G.spy.turnsLeft--;if(G.spy.turnsLeft<=0){notes.push('送り込んだスパイの潜入期間が終わった。');G.spy=null}else notes.push(`潜入中のスパイ：残り${G.spy.turnsLeft}ターン`)}
+if(G.soldInfo){const si=G.soldInfo;notes.push(`勇者が情報を売ってきた。\n【${si.type=='hp'?`勇者の体力：${si.val}`:`仲間の種類：${si.val}`}】`);G.pendingGems=1+rnd(5);G.soldInfo=null}
+if(G.demonNote.length){notes.push(...G.demonNote);G.demonNote=[]}
+if(notes.length)await say(notes.join('\n\n'))}
+else{if(G.loot.length){const l=G.loot.join('\n');G.loot=[];await say('【 前回の戦闘で得たもの 】\n'+l)}
+if(G.pendingGems){const g=G.pendingGems;G.pendingGems=0;H.gems+=g;await say(`情報を売った見返りとして、宝石を${g}個手に入れた！`)}
+if(G.pendingQuarry){const g=G.pendingQuarry;G.pendingQuarry=0;H.gems+=g;await say(`採石場（Lv${H.quarryLv}）で、宝石を${g}個手に入れた！`)}
+if(G.pendingTrain){const{a,h}=G.pendingTrain;G.pendingTrain=null;H.atk+=a;H.mhp+=h;H.hp+=h;await say(`訓練場（Lv${H.trainLv}）の成果で、攻撃力+${a}、最大HP+${h}！`)}
+if(G.pendingMerchant){const neg=G.pendingMerchant.neg;G.pendingMerchant=null;await merchant(neg)}
+if(G.over)return}
+idle()}
+function endPhase(){cm(false);const o=G.side=='d'?D:H;if(G.act>0)o.bank=1;
+if(G.side=='d'){G.side='';cover('【 勇者軍のターンです！ 】','プレイヤー交代してください。\n準備ができたら画面をタップしてください。',()=>startPhase('h'))}
+else{G.side='';cover('【 閲覧フェーズ 】','魔王軍・勇者軍の両プレイヤーで、一緒に画面を見てください。\n「開始する」を押すと、このターンの結果が始まります。',resolve,'[ 開始する ]',1)}}
+function dead(){if(H.hp<=0){H.hp=0;end('d');return true}return false}
+function checkDemonDead(){if(D.hp<=0){D.hp=0;end('h');return true}return false}
+async function fight(kind,m){const T=mst(m),x1=m.x||1;m.hp=m.mhp=Math.round(T.hp*x1);m.atk=Math.round(T.atk*x1);const sn=SP[m.t];scene='bat';
+let amul=1,dmul=1;if(H.itemDouble){H.itemDouble=false;amul=2;dmul=2}
+BT=kind=='sum'?[ent('hero',4,100,16),ent(sn,6,20,80)]:[ent(sn,4,100,16),ent('hero',5,16,88),...H.party.filter(p=>!p.spy).map((p,i)=>ent(CS[p.c],3,60+i*26,112))];
+let rd=0,pl=H.plan,charge=false;H.plan=null;
+if(amul>1)await note('【 2倍増幅剤発動！ 】\nこの戦闘の間、攻撃力・防御力が2倍になる！',800);
+while(m.hp>0&&H.hp>0){rd++;let d,tx='勇者の攻撃！';const base=HA()*amul+pb(1)*3+rnd(5);
+if(charge){d=Math.round(base*2.5);tx='ためた力を解放！';charge=false}
+else if(rd==1&&pl=='gan'){d=Math.round(base*1.3)}
+else if(rd==1&&pl=='iro'&&H.skills.length){const sk=pick(H.skills);tx='勇者は特技を使った！';if(sk=='ためる'){d=0;charge=true;tx+='\n【ためる】次の攻撃に力を溜めている…'}else d=Math.round(base*1.3)}
+else d=base;
+m.hp-=d;shake();await note(d?`${tx} ${d}ダメージ`:tx,650);if(m.hp<=0)break;
+let e=Math.max(1,m.atk-HD()*dmul)+rnd(4);if(pl=='inochi'&&rnd(3)==0)e=0;
+H.hp-=e;G.tD+=e;LFD+=e;shake();await note(e?`${m.t}の攻撃！ ${e}ダメージ`:`${m.t}の攻撃！　勇者は守り切った！`,700)}
+await sl(300);scene='path';return m.hp<=0}
+async function spyBattle(cls){scene='bat';const T={hp:40+D.tier*8,atk:8+D.tier*2};let hp=T.hp;
+BT=[ent(CS[cls],5,100,16),ent('hero',5,16,88),...H.party.filter(p=>!p.spy).map((p,i)=>ent(CS[p.c],3,60+i*26,112))];
+H.hp-=20;G.tD+=20;shake();await note('スパイの奇襲！　勇者は20ダメージを受けた！',800);if(dead())return;
+while(hp>0&&H.hp>0){const d=HA()+pb(1)*3+rnd(5);hp-=d;shake();await note(`勇者の反撃！ ${d}ダメージ`,600);if(hp<=0)break;
+const e=Math.max(1,T.atk-HD())+rnd(4);H.hp-=e;G.tD+=e;shake();await note(`スパイの攻撃！ ${e}ダメージ`,700);if(dead())return}
+await say(hp<=0?'スパイを撃退した！':'スパイは去っていった…');await sl(200);scene='path'}
+async function resolve(){scene='path';G.tD=G.tH=0;$('hud').textContent=`ターン ${G.turn}/${G.maxTurn}　閲覧フェーズ`;
+const spyIdx=H.party.findIndex(p=>p.spy);
+if(spyIdx>=0){const p=H.party[spyIdx];H.party.splice(spyIdx,1);await say(`【 まさかの裏切り！ 】\n仲間にした【${CL[p.c]}】は魔王軍の手先だった！`);await spyBattle(p.c);if(dead())return}
+for(const q of G.q){
+if(q.k=='sum'){const sm={t:rollSummon(),r:q.r};let hmsg='';
+if(H.itemHenge){H.itemHenge=false;sm.r=Math.max(1,sm.r-1);hmsg='\n（へんげの杖の効果で、召喚モンスターのレア度が下がった！）'}
+await say(`【 魔王の仕込み発動！ 】\n召喚モンスター【${sm.t}】が勇者に襲いかかる！${hmsg}`);
+if(await trySmoke()){}else{
+LFD=0;await fight('sum',sm);if(dead())return;
+if(sm.t=='サキュバス'){const heal=Math.floor(LFD/2);if(heal>0){D.hp=Math.min(D.mhp,D.hp+heal);G.demonNote.push(`サキュバスが勇者に与えたダメージの一部を吸収し、魔王の体力が${heal}回復した。`)}}
+await say('戦闘勝利！　勇者は召喚モンスターを撃退した。')}}
+else if(H.itemTrap){H.itemTrap=false;await say(`【 仕込み発動！ 】\n${q.n}！\n木こりのにんぎょうの力でトラップを回避した！`)}
+else if(H.immuneTurn==G.turn){await say(`【 仕込み発動！ 】\n${q.n}！\n勇者はトラップを回避した！`)}
+else{const td=q.d*(H.doubleTurn==G.turn?2:1);H.hp-=td;G.tD+=td;
+if(q.drain){const heal=Math.floor(td/2);D.hp=Math.min(D.mhp,D.hp+heal);await say(`【 仕込み発動！ 】\n${q.n}！　勇者は${td}ダメージを受けた。\n魔王は${heal}回復した。`)}
+else await say(`【 仕込み発動！ 】\n${q.n}！　勇者は${td}ダメージを受けた。`);
+if(dead())return}}
+G.q=[];const t=(G.turn>=G.maxTurn)?'cstl':(H.nextTile||G.plan[G.pos+1]),cl=H.cleave,dm=G.dmn>0,cx=H.cursedCave;
+H.nextTile=null;H.cleave=false;H.cursedCave=false;G.dmn=0;H.story=Math.min(5,1+Math.floor((G.turn-1)/G.maxTurn*5));
+G.walk={a:G.pos,b:G.pos+1,t0:Date.now()};await note('勇者は次のマスへ歩き出す…',1000);G.pos++;G.tiles[G.pos]=t;G.walk=null;
+await say(`勇者が止まったマス：${NM[t]}`);
+if(t=='vil'){H.bonus=true;await say('勇者は村/街で一息ついた。')}
+else if(t=='cave'){const m={t:roll(),r:Math.min(6,1+Math.floor(G.turn/G.maxTurn*6))};if(cx)m.x=1.5;
+const smk=await trySmoke();
+if(smk){}else if(cl){await say(`洞窟の【${m.t}】を、ダメージを受けずに討伐した！`);H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}
+else{LFD=0;await fight('cave',m);if(dead())return;await say('戦闘勝利！');H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}}
+else if(t=='fnt'){const h=Math.min(30,H.mhp-H.hp);H.hp+=h;G.tH+=h;await say(`精霊の泉の力で、勇者の体力が${h}回復した。`)}
+else if(t=='chst'){const r=rnd(3);
+if(r==0){if(H.gear<5)H.gear++;else H.atk+=3;await say('勇者は宝箱を開けた。')}
+else if(r==1){const h=Math.min(20,H.mhp-H.hp);H.hp+=h;G.tH+=h;await say(`宝箱から回復の光！　勇者の体力が${h}回復した。`)}
+else{await say('宝箱はミミックだった！');const smk=await trySmoke();if(!smk){LFD=0;await fight('cave',{t:'ミミック',r:2+Math.floor(G.turn/G.maxTurn*5)});if(dead())return;await say('戦闘勝利！')}}}
+else if(t=='mer'){G.pendingMerchant={neg:dm};await say('勇者は旅の商人に出会った。\n（品定めは次の勇者ターンの初めに行う）')}
+else if(t=='qry'){const g=1+H.quarryLv;G.pendingQuarry=(G.pendingQuarry||0)+g;await say('勇者は採石場を見つけた。\n（結果は次の勇者ターンの初めにわかる）')}
+else if(t=='trg'){const a=H.trainLv,h=H.trainLv*3;G.pendingTrain={a,h};await say('勇者は訓練場を見つけた。\n（結果は次の勇者ターンの初めにわかる）')}
+else{await finale();return}
+let rep=`勇者が止まったマス：${NM[t]}\n勇者に与えたダメージ：${G.tD}\n勇者が回復した体力：${G.tH}`;
+if(G.turretNote){rep+=`\n${G.turretNote}`;G.turretNote=''}
+await say(rep);
+H.plan=null;G.turn++;cover('【 魔王軍のターンです！ 】','プレイヤー交代してください。\n準備ができたら画面をタップしてください。',()=>startPhase('d'))}
+async function merchant(neg){
+const A=[['HPを10〜50回復する',()=>{const h=Math.min(10+rnd(41),H.mhp-H.hp);H.hp+=h;G.tH+=h;return `体力が${h}回復した！`}],
+['次のターンのみ、魔王のトラップのダメージを受けない',()=>{H.immuneTurn=G.turn+1;return '次のターン、トラップのダメージを受けなくなった！'}],
+['攻撃力を1〜5上げる',()=>{const v=1+rnd(5);H.atk+=v;return `攻撃力が${v}上がった！`}],
+['防御力を1〜5上げる',()=>{const v=1+rnd(5);H.def+=v;return `防御力が${v}上がった！`}],
+['次のマスを必ず街マスにする',()=>{H.nextTile='vil';return '次のマスは必ず村/街になる！'}],
+['次のマスが洞窟なら、ダメージなしで討伐できる',()=>{H.cleave=true;return '次のマスが洞窟なら、ダメージを受けずに討伐できる！'}]];
+const N=[['HPが30〜150減る',()=>{const v=(10+rnd(41))*3;H.hp-=v;G.tD+=v;return `体力が${v}減った…`}],
+['次のターンのみ、魔王のトラップのダメージが2倍になる',()=>{H.doubleTurn=G.turn+1;return '次のターン、トラップのダメージが2倍になる…'}],
+['攻撃力を3〜15下げる',()=>{const v=Math.min((1+rnd(5))*3,H.atk-1);H.atk-=v;return `攻撃力が${v}下がった…`}],
+['防御力を3〜15下げる',()=>{const v=Math.min((1+rnd(5))*3,H.def);H.def-=v;return `防御力が${v}下がった…`}],
+['次のマスを必ず洞窟マスにする',()=>{H.nextTile='cave';return '次のマスは必ず洞窟になる…'}],
+['次のマスが洞窟なら、敵が1.5倍の強さになる',()=>{H.cursedCave=true;return '次のマスが洞窟なら、敵が1.5倍強くなる…'}]];
+const ch=(neg?N:A).map(o=>[Math.random(),o]).sort((a,b)=>a[0]-b[0]).slice(0,3).map(a=>a[1]);
+const i=await ask('【 旅の商人 】'+(neg?'\n闇の商人の呪いで、すべての効果が真逆かつ強烈になっている！\n':'')+'3つの品から1つを選んでください。',ch.map(o=>o[0]),1);
+await say(ch[i][1]());if(H.hp<=0)dead()}
+async function finale(){
+await new Promise(r=>cover('【 最終決戦：魔王城に到達！ 】','勇者軍・魔王軍 両プレイヤーは画面に注目してください。\n世界の命運をかけた、最後の戦いが始まります。',r,'[ 最後の戦いを始める ]',1));
+scene='bat';const gs=[rollSummon(),rollSummon()].map(t=>({t,r:D.tier})),dd=5+D.build*2;
+BT=[ent('demon',5,104,10),...gs.map((m,i)=>ent(SP[m.t],4,20+i*34,26)),ent('hero',5,16,88),...H.party.filter(p=>!p.spy).map((p,i)=>ent(CS[p.c],3,60+i*26,112))];
+$('hud').textContent='最終決戦　魔王城';let rd=0,pl=H.plan,charge=false;H.plan=null;
+while(true){rd++;let d,tx='勇者の攻撃！';const base=Math.max(1,HA()-dd)+pb(1)*3+rnd(5);
+if(charge){d=Math.round(base*2.5);tx='ためた力を解放！';charge=false}
+else if(rd==1&&pl=='gan')d=Math.round(base*1.3);
+else if(rd==1&&pl=='iro'&&H.skills.length){const sk=pick(H.skills);tx='勇者は特技を使った！';if(sk=='ためる'){d=0;charge=true;tx+='\n【ためる】次の攻撃に力を溜めている…'}else d=Math.round(base*1.3)}
+else d=base;
+D.hp-=d;shake();await note(d?`${tx} ${d}ダメージ`:tx,650);
+if(D.hp<=0){end('h');return}
+let e=Math.max(1,10+D.build-HD())+gs.reduce((s,m)=>s+Math.max(1,Math.round(mst(m).atk*.5)-HD()),0);
+if(pl=='inochi'&&rnd(3)==0)e=0;
+H.hp-=e;shake();await note(e?`魔王軍の攻撃！　勇者は${e}ダメージ`:'魔王軍の攻撃！　勇者は守り切った！',900);
+if(dead())return}}
+function end(w){if(G.over)return;G.over=true;cm(false);cover(w=='h'?'【 勇者軍の勝利！ 】':'【 魔王軍の勝利！ 】',w=='h'?'見事、魔王の討伐に成功した！\n世界に再び光と平和が戻った。\n勇者プレイヤーの勝ちです！':'勇者軍は力尽き、全滅した…\n世界は永遠の闇に包まれた。\n魔王プレイヤーの勝ちです！',()=>location.reload(),'もう一度遊ぶ')}
+/* ---- 開始 ---- */
+function title(){const t=$('tt'),c=$('tc').getContext('2d'),t0=Date.now();c.clearRect(0,0,160,64);sp('demon',12,8,6,c);sp('cstl',64,16,4,c);sp('hero',100,8,6,c);
+t.style.display='flex';t.onclick=()=>{if(Date.now()-t0<400)return;t.style.display='none';turnSelect()}}
+async function turnSelect(){const i=await ask('ターン数を選んでください。',['10ターン（短め）','20ターン（じっくり）'],1);
+G.maxTurn=[10,20][i];G.plan=Array.from({length:G.maxTurn-1},()=>planPick());rules()}
+function rules(){cover('【 遊び方 】',`・魔王軍と勇者軍が、1台のスマホを交代で操作する2人対戦。全${G.maxTurn}ターン。\n・1ターンの流れ：魔王の行動 → 勇者の行動 → 閲覧フェーズ（2人で一緒に結果を見る）。\n・行動回数は両軍とも1ターン2回。行動を余らせて終了すると、1回分だけ次回に自動で持ち越される（最大3回まで）。\n・同じ行動は、1ターンに1回まで選べる。\n・基地では画面のどこでもドラッグして移動。NPCの隣でタップすると話しかけられ、コマンドを選べる。\n・作戦やステータスは相手に秘密。待機側は画面を見ないこと。\n・${G.maxTurn}ターン目は魔王城で最終決戦（自動戦闘）。先にHPが0になった方の負け。`,
+()=>cover('【 魔王軍のターンです！ 】','魔王プレイヤーに端末を渡してください。\n準備ができたら画面をタップしてください。',()=>startPhase('d')),'タップして始める');$('cb').style.textAlign='left'}
+hud();title();
+</script></body></html>
