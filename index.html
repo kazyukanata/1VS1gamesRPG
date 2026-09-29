@@ -39,7 +39,7 @@ html,body{overscroll-behavior:none}
 <script>
 const $=i=>document.getElementById(i),cv=$('c'),x=cv.getContext('2d');cv.width=160;cv.height=144;
 const mk=s=>s.split('/'),rnd=n=>Math.random()*n|0,pick=a=>a[rnd(a.length)],sl=ms=>new Promise(r=>setTimeout(r,ms));
-const P={k:'#111',w:'#fff',s:'#f5c9a0',b:'#3a6ee8',B:'#1d3a8a',r:'#d03030',R:'#701818',y:'#f0d020',g:'#3cb043',G:'#1f6f2a',p:'#8a3cc0',P:'#4a1e6e',n:'#8a5a2a',e:'#9aa0aa',E:'#555a66',o:'#e88a20',c:'#40c8e0'};
+const P={k:'#111',w:'#fff',s:'#f5c9a0',b:'#3a6ee8',B:'#1d3a8a',r:'#d03030',R:'#701818',y:'#f0d020',g:'#3cb043',G:'#1f6f2a',p:'#8a3cc0',P:'#4a1e6e',n:'#8a5a2a',e:'#9aa0aa',E:'#555a66',o:'#e88a20',c:'#c7a46a',C:'#8d5f2d',m:'#4d5a65',M:'#2b333c',v:'#7aa6ff',V:'#4361ab',q:'#ffae42',Q:'#a85a00',d:'#fa7474',D:'#bb3b3b'};
 const S={
 hero:mk('..nnnn../.nssssn./..sksk../..ssss../.bbbbbb./sbbbbbbs/.bb..bb./.nn..nn.'),
 demon:mk('y.yyyy.y/.yyyyyy./.rrrrrr./.rkrrkr./..rrrr../.PPPPPP./PPPyyPPP/.PP..PP.'),
@@ -84,13 +84,13 @@ const TY=['スライム','ゾンビ','あくまのよろい','ドラゴン'],SP=
 const RT={2:70,3:50,4:30,5:15,6:5};
 const roll=()=>{const n=rnd(100);return TY[n<40?0:n<70?1:n<90?2:3]};
 const rollSummon=()=>{const n=rnd(100);return n<35?'スライム':n<62?'ゾンビ':n<80?'あくまのよろい':n<90?'ドラゴン':'サキュバス'};
-const TM={'スライム':[1,.8],'ゾンビ':[1.2,1],'あくまのよろい':[1.4,1.2],'ドラゴン':[1.7,1.5],'ミミック':[1.2,1],'サキュバス':[1.3,1.1],'ドラゴンゾンビ':[2.4,2.1]};
+const TM={'スライム':[1,.8],'ゾンビ':[1.2,1],'あくまのよろい':[1.4,1.2],'ドラゴン':[1.7,1.5],'ミミック':[1.2,1],'サキュバス':[1.3,1.1],'ドラゴンゾンビ':[2.4,2.1]}[rollSummon()]||[1,1];
 const mst=m=>{let atk=Math.round((6+3*m.r)*TM[m.t][1]);if(m.t=='ゾンビ')atk=Math.round(atk*(1+.15*H.party.length));return{hp:Math.round((30+12*m.r)*TM[m.t][0]),atk}};
 const NM={vil:'村/街',cave:'洞窟',fnt:'精霊の泉',chst:'宝箱',cstl:'魔王城',mer:'商人',qry:'採石場',trg:'訓練場'};
 const TPOOL=['vil','cave','fnt','chst','mer','qry','trg'];
-const ITEMS=[['木こりのにんぎょう',3,'次のトラップを1回回避する(消費)'],['へんげの杖',4,'次の戦闘時、召喚モンスターのレア度を1段階下げる(消費・自動発動)'],['2倍増幅剤',5,'次の戦闘(最終戦除く)で攻撃・防御が2倍になる(消費)'],['けむり玉',4,'次の戦闘(最終戦除く)を50%の確率で回避する。報酬なし(消費)'],['馬車',15,'仲間の上限が5になる(永久)'],['いやし草',3,'HPを50回復する(消費)'],['秘薬',6,'HPを全回復する(消費)']];
-function planPick(){const bonus=Math.min(60,H.townRate||0),others=TPOOL.filter(t=>t!='vil'),baseW=100/TPOOL.length,vilW=baseW+bonus,eachOther=(100-vilW)/others.length,w=TPOOL.map(t=>t=='vil'?vilW:eachOther);let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let i=0;i<TPOOL.length;i++){r-=w[i];if(r<=0)return TPOOL[i]}return TPOOL[TPOOL.length-1]}
-async function trySmoke(){if(!H.itemSmoke)return false;H.itemSmoke=false;if(rnd(2)==0){await say('【 けむり玉を使用！ 】\n戦闘を回避した！（報酬なし）');return true}await say('【 けむり玉を使用！ 】\nしかし回避できなかった…');return false}
+const ITEMS=[['木こりのにんぎょう',3,'次のトラップを1回回避する(消費)'],['へんげの杖',4,'次の戦闘時、召喚モンスターのレア度を1段階下げる(消費)'],['2倍増幅剤',5,'次の戦闘(最終戦除く)で攻撃・防御が2倍'],['けむり玉',4,'次の戦闘(最終戦除く)を50%の確率で回避(報酬なし)'],['馬車',15,'仲間の上限が5になる'],['金の薬',8,'体力を最大HPの20%回復する'],['奇跡の薬',12,'体力を全回復する']];
+function planPick(){const bonus=Math.min(60,H.townRate||0),others=TPOOL.filter(t=>t!='vil'),baseW=100/TPOOL.length,vilW=baseW+bonus,eachOther=(100-vilW)/others.length,w=TPOOL.map(t=>t=='vil'?vilW:eachOther);return pick(TPOOL.map((t,i)=>i==0?[t,vilW]:[t,eachOther])).find((_,i)=>i==0)?TPOOL[0]:pick(TPOOL)}
+async function trySmoke(){if(!H.itemSmoke)return false;H.itemSmoke=false;if(rnd(2)==0){await say('【 けむり玉を使用！ 】\n戦闘を回避した！（報酬なし）');return true}await say('【 けむり玉を使用！ 】\nしかし煙が晴れ、戦闘は続く……');return false}
 const CL=['戦士','魔法つかい','僧侶'],EF=['攻撃力+','固定ダメージ+','防御力+'],EM=[2,3,2],CS=['warr','mage','prst'];
 const HSK=[
 {n:'ためる',c:3,x:'次の攻撃を溜めて2.5倍'},
@@ -116,31 +116,27 @@ const DSK=[
 {n:'全闇の吸収',c:10,x:'闇の勇者を通常に戻す',pre:()=>H.dark,pt:'相手が闇の勇者で解放'}];
 async function exchangeSkill(side){const st=side=='h'?H:D,pool=side=='h'?HSK:DSK,left=pool.filter(k=>!st.skills.includes(k.n));
 if(!left.length){await say('交換できる特技はもうない。');return false}
-const i=await ask(`所持特訓ポイント：${st.trainPts}\n交換する特技を選んでください。`,left.map(k=>{const lk=k.pre&&!k.pre();return `${k.n}（${k.c}ポイント）${lk?'【未解放】':''}\n${k.x}${lk?`（${k.pt}）`:''}`}));
-if(i<0)return false;const k=left[i];
+const i=await ask(`所持特訓ポイント：${st.trainPts}\n交換する特技を選んでください。`,left.map(k=>{const lk=k.pre&&!k.pre();return `${k.n}（${k.c}ポイント）${lk?'【条件未達】':''}`}),1);if(i<0)return false;const k=left[i];
 if(k.pre&&!k.pre()){await say(`その特技はまだ交換できない。\n（${k.pt}）`);return false}
 if(st.trainPts<k.c){await say(`特訓ポイントが足りない。（必要${k.c}／所持${st.trainPts}）`);return false}
 st.trainPts-=k.c;st.skills.push(k.n);
 return `特技【${k.n}】と交換した！（-${k.c}ポイント／残り${st.trainPts}）`}
 const pr=(pen=0)=>{const k=(G.turn-1)/(G.maxTurn-1),p3=Math.max(0,.05+.3*k-pen),p2=Math.max(0,.2+.3*k-pen),n=Math.random();return n<p3?3:n<p3+p2?2:1};
 let LFD=0;
-let G={turn:1,maxTurn:20,side:'',act:0,pos:-1,q:[],tD:0,tH:0,tiles:[],plan:[],loot:[],pendingMerchant:null,pendingGems:0,pendingQuarry:0,pendingTrain:null,soldInfo:null,demonNote:[],turretNote:'',dmn:0,spy:null,over:false,darkTransformPending:false,fruitBought:false},
-D={hp:300,mhp:300,build:0,bank:0,tier:1,breedLast:-1,breedStreak:0,healTurns:0,vacationUsed:false,spaceUsed:false,skills:[],trainPts:0},
-H={hp:100,mhp:100,atk:10,def:2,gear:0,story:1,party:[],skills:[],trainPts:0,plan:null,bank:0,bonus:false,gems:0,gatherLast:-1,gatherStreak:0,immuneTurn:-1,nextTile:null,cleave:false,doubleTurn:-1,cursedCave:false,townRate:0,quarryLv:1,trainLv:1,maxParty:3,itemsBought:new Set(),itemTrap:false,itemHenge:false,itemDouble:false,itemSmoke:false,fogTurns:0,fogActive:false,dark:false,prayerActive:false,prayerUsed:false,exorcised:false,coexistUsed:false};
+let G={turn:1,maxTurn:20,side:'',act:0,pos:-1,q:[],tD:0,tH:0,tiles:[],plan:[],loot:[],pendingMerchant:null,pendingGems:0,pendingQuarry:0,pendingTrain:null,soldInfo:null,demonNote:[],turretNote:'',used:null,over:false,spy:null,dmn:0,fruitBought:false,darkTransformPending:false};
+let D={hp:300,mhp:300,build:0,bank:0,tier:1,breedLast:-1,breedStreak:0,healTurns:0,vacationUsed:false,spaceUsed:false,skills:[],trainPts:0,guardReady:false,guardActive:false,finalePlan:[]};
+let H={hp:100,mhp:100,atk:10,def:2,gear:0,story:1,party:[],skills:[],trainPts:0,plan:null,bank:0,bonus:false,gems:0,gatherLast:-1,gatherStreak:0,immuneTurn:-1,nextTile:null,cleave:false,doubleTurn:-1,maxParty:3,quarryLv:1,trainLv:1,itemsBought:new Set(),dark:false,prayerActive:false,prayerUsed:false,exorcised:false,fogTurns:0,fogActive:false,guardReady:false,guardActive:false,finalePlan:[]};
 const pb=c=>H.party.filter(p=>p.c==c&&!p.spy).reduce((a,p)=>a+p.r,0);
 const HA=()=>H.atk+H.gear*4+H.story*2+pb(0)*2,HD=()=>H.def+H.gear*2+pb(2)*2;
 const RW=6,RH=7,RC=20,RX=20;
-const ROOMS={d:{f:['#2a1838','#331f44'],me:'demon',npcs:[['邪教の司祭','priest',1,1],['占い師','ftl',1,2],['悪魔の技師','eng',1,3],['闇の商人','dm',1,4],['魔王の執事','butl',4,1],['魔王の椅子','dchr',4,2]]},
-h:{f:['#3c7a3c','#468a44'],me:'hero',npcs:[['酒場マスター','bar',1,1],['訓練教官','trn',1,2],['情報屋','inf',1,3],['兵隊','sld',1,4],['開拓屋','pnr',1,5],['コレクター','col',4,1],['女神の像','ggod',4,2]]}};
+const ROOMS={d:{f:['#2a1838','#331f44'],me:'demon',npcs:[['邪教の司祭','priest',1,1],['占い師','ftl',1,2],['悪魔の技師','eng',1,3],['闇の商人','dm',1,4],['魔王の執事','butl',1,5],['魔王の椅子','dhero',3,3],['魔王の椅子','dhero',4,4]]},
+h:{f:['#3c7a3c','#468a44'],me:'hero',npcs:[['酒場マスター','bar',1,1],['訓練教官','trn',1,2],['情報屋','inf',1,3],['兵隊','sld',1,4],['開拓屋','pnr',1,5],['コレクター','col',4,1],['砲台','trt',4,3]]}};
 function HS(){return H.dark?'dhero':'hero'}
 function npcsFor(s){if(s=='d'){const list=[...ROOMS.d.npcs];if(G.turn>=5)list.push(['ドラゴンゾンビ','dzmb',4,3]);return list}
-const list=[...ROOMS.h.npcs];if(G.turn>=5)list.push(['砲台','trt',4,3]);
-H.blackMerchantHere=!H.dark&&Math.random()<.2;if(H.blackMerchantHere)list.push(['謎の黒フードを被った商人','bmer',4,4]);
-return list}
+const list=[...ROOMS.h.npcs];if(G.turn>=5)list.push(['砲台','trt',4,3]);if(H.blackMerchantHere)list.push(['謎の黒フードを被った商人','bmer',4,4]);return list}
 let scene='',room=null,me={x:3,y:5},face=[0,-1],canMove=false,sh=0,BT=[];
 function cm(v){canMove=v;document.body.style.touchAction=v?'none':'pan-y'}
 const ent=(n,s,x,y)=>({n,s,x,y});
-/* ---- 描画 ---- */
 const OX=7,OY=18,TF=Array.from({length:45},(_,i)=>[(i*67+13)%158,(i*41+29)%142]);
 const nd=i=>{if(i<0)return{x:OX,y:OY-14};const r=i/6|0,c=r%2?5-i%6:i%6;return{x:OX+c*26,y:OY+r*26}};
 function draw(t){const bb=(t/400|0)%2;x.fillStyle='#000';x.fillRect(0,0,160,144);
@@ -158,7 +154,6 @@ else if(scene=='vs'){x.fillStyle='#1a1030';x.fillRect(0,0,160,144);x.fillStyle='
 sp('cstl',66,52,5);sp('demon',12,40+bb,7);sp('hero',96,40+bb,7)}}
 (function L(t){draw(t);requestAnimationFrame(L)})(0);
 async function shake(){for(let i=0;i<6;i++){sh=i%2?-3:3;await sl(40)}sh=0}
-/* ---- UI部品 ---- */
 function hud(){let s=`ターン ${G.turn}/${G.maxTurn}`;if(G.side=='d')s+=`　魔王 HP ${D.hp}/${D.mhp}　行動 ${G.act}回`;else if(G.side=='h')s+=`　勇者 HP ${H.hp}/${H.mhp}　行動 ${G.act}回`;$('hud').textContent=s}
 function setBtns(a){const e=$('btns');e.innerHTML='';a.forEach(([l,f,d])=>{const b=document.createElement('button');const i=l.indexOf('\n');
 if(i>=0){const bn=document.createElement('span');bn.className='bn';bn.textContent=l.slice(0,i);const bd=document.createElement('span');bd.className='bd';bd.textContent=l.slice(i+1);b.appendChild(bn);b.appendChild(bd)}
@@ -168,10 +163,9 @@ function menu(t,a){cm(false);$('msg').textContent=t;setBtns(a)}
 function say(t,b='次へ'){return new Promise(r=>menu(t,[[b,r]]))}
 function note(t,ms=900){cm(false);$('msg').textContent=t;setBtns([]);return sl(ms)}
 function ask(t,l,nb){return new Promise(r=>menu(t,[...l.map((s,i)=>[s,()=>r(i)]),...(nb?[]:[['戻る',()=>r(-1)]])]))}
-function idle(){cm(!G.over);$('msg').textContent='画面のどこでもドラッグして移動。NPCの隣でタップすると話しかけられる。';setBtns([['行動を終了する',confirmEnd]]);hud()}
+function idle(){cm(!G.over);$('msg').textContent='画面のどこでもドラッグして移動。NPCの隣でタップすると話しかけられる。';setBtns([['行動を終了する',confirmEnd]])}
 function confirmEnd(){menu(`行動を終了しますか？\n残りの行動 ${G.act}回分のうち、1回分だけ次回に持ち越されます。`,[['終了する',endPhase],['戻る',idle]])}
-function cover(t,b,f,l='画面をタップして進む',bo){$('ct').textContent=t;$('cb').textContent=b;$('cb').style.textAlign='';$('cl').textContent=l;$('msg').textContent='';$('bi').textContent='';setBtns([]);scene='';cm(false);const v=$('cv'),t0=Date.now();v.style.display='flex';v.onclick=e=>{if(bo&&!e.target.closest('#cl'))return;if(Date.now()-t0<400)return;v.style.display='none';f()}}
-/* ---- 入力(仮想コントローラーなし) ---- */
+function cover(t,b,f,l='画面をタップして進む',bo){$('ct').textContent=t;$('cb').textContent=b;$('cb').style.textAlign='';$('cl').textContent=l;$('msg').textContent='';$('bi').textContent='';const e=$('cv');e.style.display='flex';$('cl').onclick=()=>{e.style.display='none';if(f)f()}}
 const stk=$('stick'),knob=$('knob');let st=null;
 function adj(){const a=room.npcs.filter(n=>Math.abs(n[2]-me.x)+Math.abs(n[3]-me.y)==1);return a.find(n=>n[2]==me.x+face[0]&&n[3]==me.y+face[1])||a[0]}
 function dirOf(){if(Math.hypot(st.dx,st.dy)<16)return null;return Math.abs(st.dx)>Math.abs(st.dy)?[Math.sign(st.dx),0]:[0,Math.sign(st.dy)]}
@@ -187,68 +181,56 @@ n=n||adj();if(n)talk(n)}});
 document.addEventListener('pointercancel',e=>{if(st&&e.pointerId==st.id){clearInterval(st.iv);stk.style.display='none';st=null}});
 function go(a,b){face=[a,b];const nx=me.x+a,ny=me.y+b;if(nx<2||ny<1||nx>RW-3||ny>RH-2||room.npcs.some(n=>n[2]==nx&&n[3]==ny))return;me.x=nx;me.y=ny}
 addEventListener('keydown',e=>{if(!canMove)return;const k={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(k){e.preventDefault();go(...k)}});
-/* ---- コマンド ---- */
 const CMD={h:{
 '酒場マスター':[['仲間を集める',async()=>{if(H.party.length>=H.maxParty){await say(`仲間は最大${H.maxParty}人までだ。`);return false}
 const bo=H.bonus;H.bonus=false;const streak=(H.gatherLast===G.turn-1)?H.gatherStreak+1:1,pen=streak>1?.05:0;
 const r=Math.min(3,pr(pen)+(bo?1:0)),c=rnd(3);H.gatherLast=G.turn;H.gatherStreak=streak;
 let spy=false;if(G.spy&&G.spy.turnsLeft>0&&c===G.spy.cls){spy=true;G.spy=null}
 H.party.push({c,r,spy});return `仲間【${CL[c]} ${'★'.repeat(r)}】が加わった！\n（${EF[c]}${r*EM[c]}）`},1,'仲間が1人加わる'],
-['仲間と別れる',async()=>{if(!H.party.length){await say('別れる仲間がいない。');return false}const i=await ask('誰と別れる？',H.party.map(p=>CL[p.c]+' '+'★'.repeat(p.r)));if(i<0)return false;const p=H.party.splice(i,1)[0];return `${CL[p.c]}と別れた。`},1,'仲間を1人選んで離脱']],
+['仲間と別れる',async()=>{if(!H.party.length){await say('別れる仲間がいない。');return false}const i=await ask('誰と別れる？',H.party.map(p=>CL[p.c]+' '+'★'.repeat(p.r)));if(i<0)return false;H.party.splice(i,1);return '仲間と別れた。'},1,'仲間を1人解雇'],
 '訓練教官':[['モンスターを倒す',async()=>{H.atk+=3;H.mhp+=8;H.hp+=8;return '訓練でモンスターを倒した！\n攻撃力+3　最大HP+8'},1,'攻撃力+3・最大HP+8'],
-['特訓する',async()=>{const gain=1+rnd(3);H.trainPts=(H.trainPts||0)+gain;return `特訓を行った。（特訓ポイント+${gain}　所持${H.trainPts}）`},1,'特訓ポイントを1〜3貯める'],
-['スキルを交換する',async()=>exchangeSkill('h'),1,'ポイントを消費して特技を習得']],
+['特訓する',async()=>{const gain=1+rnd(3);H.trainPts=(H.trainPts||0)+gain;return `特訓を行った。（特訓ポイント+${gain}　所持${H.trainPts}）`},1,'特訓ポイントを1〜3獲得'],
+['スキルを交換する',async()=>exchangeSkill('h'),1,'ポイントを消費して特技を習得'],
 '情報屋':[['情報を集める',async()=>{if(Math.random()<.5){const nt=G.turn>=G.maxTurn?'cstl':G.plan[G.pos+1];return `次のマスの種類が分かった：【${NM[nt]}】`}
-if(!G.q.length)return '現在、魔王軍に仕込まれた行動は無いようだ。';const e=pick(G.q);return `魔王軍の仕込みが1つ分かった：【${e.k=='sum'?'モンスターの召喚':e.n}】`},1,'次のマスか敵の仕込みが判明'],
+if(!G.q.length)return '現在、魔王軍に仕込まれた行動は無いようだ。';const e=pick(G.q);return `魔王軍の仕込みが1つ分かった：【${e.k=='sum'?'モンスターの召喚':'罠'}】`},1,'次のマスor仕込みを1つ知る'],
 ['情報を売る',async()=>{if(G.soldInfo){await say('その情報はもう売った後だ。');return false}
 const i=await ask('何を売る？',['勇者の体力','仲間の種類']);if(i<0)return false;
-G.soldInfo=i==0?{type:'hp',val:`${H.hp}/${H.mhp}`}:{type:'party',val:H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'};
-return '情報を売った。\n（魔王に伝わるのは次の魔王ターン開始時。見返りの宝石は次の勇者ターンにもらえる）'},1,'体力/仲間を売り宝石を得る']],
-'兵隊':[['作戦を練る',async()=>{const N=['ガンガンいこうか','いろいろやるか','いのちを守ろう'],i=await ask('作戦を練る。次の戦闘の1回だけ有効。',['ガンガンいこうか\n（1ターン目の攻撃が1.2倍）','いろいろやるか\n（1ターン目に習得した特技を使う）','いのちを守ろう\n（3分の1の確率でダメージを受けない）']);if(i<0)return false;H.plan=['gan','iro','inochi'][i];return `作戦【${N[i]}】を決めた。\n次の戦闘の間だけ発動する。`},1,'次の戦闘だけ有効な作戦を選択']],
-'開拓屋':[['街の開拓',async()=>{H.townRate=(H.townRate||0)+5;for(let i=G.pos+1;i<G.plan.length;i++)G.plan[i]=planPick();return `街の開拓を行った！\n村/街の出現率が+5%された（現在+${H.townRate}%）。\nまだ訪れていない先のマスにも反映された。`},1,'村/街の出現率+5%（累積）'],
-['採石場の強化',async()=>{if(H.quarryLv>=5){await say('採石場はこれ以上強化できない（最大Lv5）。');return false}H.quarryLv++;return `採石場を強化した！（Lv${H.quarryLv}）\n採石場マスで得られる宝石の数が増える。`},1,'採石場の宝石量UP（Lv1〜5）'],
-['訓練場の強化',async()=>{if(H.trainLv>=5){await say('訓練場はこれ以上強化できない（最大Lv5）。');return false}H.trainLv++;return `訓練場を強化した！（Lv${H.trainLv}）\n訓練場マスで得られる能力上昇が増える。`},1,'訓練場の能力上昇UP（Lv1〜5）']],
-'コレクター':[['宝石と交換する',async()=>{const opts=ITEMS.map((it,i)=>H.itemsBought.has(i)?`${it[0]}（交換済み）`:`${it[0]}（宝石${it[1]}個）\n${it[2]}`);
-const i=await ask(`所持している宝石：${H.gems}個\n交換するアイテムを選んでください。`,opts);if(i<0)return false;
+G.soldInfo=i==0?{type:'hp',val:`${H.hp}/${H.mhp}`}:{type:'party',val:H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'};return '情報を売った。\n（魔王に伝わるのは次の魔王ターン開始時。見返りの宝石は次の勇者ターンにもらえる）'},1,'体力/仲間を売り宝石を得る'],
+'兵隊':[['作戦を練る',async()=>{const N=['ガンガンいこうか','いろいろやるか','いのちを守ろう'],i=await ask('作戦を練る。次の戦闘の1回だけ有効。',N);if(i<0)return false;H.plan=N[i];return `作戦を練った：${N[i]}（次の戦闘に1回だけ有効）`},1,'次の戦闘に1回だけ特殊効果'],
+'開拓屋':[['街の開拓',async()=>{H.townRate=(H.townRate||0)+5;for(let i=G.pos+1;i<G.plan.length;i++)G.plan[i]=planPick();return `街の開拓を行った！\n村/街の出現率が+5%され、次のマスも変わる。`},1,'村/街の出現率+5%'],
+['採石場の強化',async()=>{if(H.quarryLv>=5){await say('採石場はこれ以上強化できない（最大Lv5）。');return false}H.quarryLv++;return `採石場を強化した！（Lv${H.quarryLv}）`},1,'採石場の宝石量を増やす'],
+['訓練場の強化',async()=>{if(H.trainLv>=5){await say('訓練場はこれ以上強化できない（最大Lv5）。');return false}H.trainLv++;return `訓練場を強化した！（Lv${H.trainLv}）`},1,'訓練場の効果を増やす'],
+'コレクター':[['宝石と交換する',async()=>{const opts=ITEMS.map((it,i)=>H.itemsBought.has(i)?`${it[0]}（交換済み）`:`${it[0]}（宝石${it[1]}個）\n${it[2]}`);const i=await ask(`所持している宝石：${H.gems}個\n交換するアイテムを選んでください。`,opts);if(i<0)return false;
 if(H.itemsBought.has(i)){await say('そのアイテムはもう交換済みだ。');return false}
 if(H.gems<ITEMS[i][1]){await say('宝石が足りない。');return false}
 H.gems-=ITEMS[i][1];H.itemsBought.add(i);
-if(i==0)H.itemTrap=true;else if(i==1)H.itemHenge=true;else if(i==2)H.itemDouble=true;else if(i==3)H.itemSmoke=true;else if(i==4)H.maxParty=5;
-else if(i==5){const h=Math.min(50,H.mhp-H.hp);H.hp+=h;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復した！`}
-else if(i==6){const h=H.mhp-H.hp;H.hp=H.mhp;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復し、全回復した！`}
+if(i==0)H.itemTrap=true;else if(i==1)H.itemHenge=true;else if(i==2)H.itemDouble=true;else if(i==3)H.itemSmoke=true;else if(i==4)H.maxParty=5;else if(i==5){const h=Math.min(50,H.mhp-H.hp);H.hp+=h;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復した！`}else if(i==6){const h=H.mhp-H.hp;H.hp=H.mhp;return `【${ITEMS[i][0]}】と交換した！\n体力が${h}回復し、全回復した！`}
 return `【${ITEMS[i][0]}】と交換した！\n${ITEMS[i][2]}`},1,'宝石でアイテム交換（各1回）']],
-'砲台':[['魔王城を攻撃する',async()=>{const dmg=10+rnd(21);D.hp-=dmg;let extra='';if(Math.random()<.3&&D.build>0){D.build--;extra='／魔王城の構築度を1下げた'}G.turretNote=`砲台の砲撃：${dmg}ダメージ${extra}`;
-if(checkDemonDead())return '砲台が魔王城を撃った！';return '砲台が魔王城へ向けて砲撃した！\n（効果は次の閲覧フェーズでわかる）'},1,'魔王城にダメージ']],
-'謎の黒フードを被った商人':[['禁断の果実を購入',async()=>{
-if(H.dark){await say('「……もはや其方には必要あるまい。」');return false}
-const y=await ask('「……力が欲しいか？」\n禁断の果実を購入しますか？\n（購入すると同時に、その場で口にすることになる）',['購入する','やめる'],1);
-if(y!=0)return false;G.fruitBought=true;G.darkTransformPending=true;
-return '「くく……賢明な選択だ。」\n勇者は禁断の果実を購入し、その場で口にした……\n体の奥から、何かが目覚める気配がする。'},1,'禁断の果実を購入し、その場で闇の勇者になる']],
-'女神の像':[['おはらい',async()=>{H.fogTurns=0;H.fogActive=false;H.exorcised=true;return '女神の加護により、継続していたトラップの効果が解除された。'},1,'継続トラップ（呪いの霧）を解除（生涯1回）',()=>H.exorcised?'使用済み':((H.fogTurns>0||H.fogActive)?true:'解除するトラップなし')],
-['おいのり',async()=>{H.prayerActive=true;H.prayerUsed=true;return '女神に祈りを捧げた。\n体力が1の状態で攻撃を受けても、この状態が続く間は全回復する。'},1,'瀕死の一撃を1度だけ全回復に変える（1ターン限定・生涯1回）',()=>H.prayerUsed?'使用済み':true]]},
-d:{
-'邪教の司祭':[['モンスターの召喚',async()=>{if(G.q.some(e=>e.k=='sum')){await say('今ターンはすでに召喚の仕込みがある。');return false}G.q.push({k:'sum',r:D.tier});return '召喚の儀式を行った。\n何が現れるかは、発動時に決まる。'},1,'召喚モンスターを仕込む'],
+'砲台':[['魔王城を攻撃する',async()=>{const dmg=10+rnd(21);D.hp-=dmg;let extra='';if(Math.random()<.3&&D.build>0){D.build--;extra='／魔王城の構築度を1下げた'}G.turretNote=`砲台が魔王城へ発砲した！\n${dmg}ダメージ${extra}`;return '砲台が魔王城を撃った！'},1,'魔王城にダメージを与える'],
+'謎の黒フードを被った商人':[['禁断の果実を購入',async()=>{if(H.dark){await say('「……もはや其方には必要あるまい。」');return false}
+const y=await ask('「……力が欲しいか？」\n禁断の果実を購入しますか？\n（購入すると同時に、その場で口にすることになる）',['購入する','やめる'],1);if(y!=0)return false;G.fruitBought=true;G.darkTransformPending=true;return '「くく……賢明な選択だ。」\n勇者は禁断の果実を購入し、その場で口にした……\n体の奥から、何かが目覚める気配がする。'},1,'禁断の果実を購入して闇化'],
+'女神の像':[['おはらい',async()=>{H.fogTurns=0;H.fogActive=false;H.exorcised=true;return '女神の加護により、継続していたトラップの効果が解除された。'},1,'状態異常を解除'],
+['おいのり',async()=>{H.prayerActive=true;H.prayerUsed=true;return '女神に祈りを捧げた。\n体力が1の状態で攻撃を受けても、この状態が続く間は全回復する。'},1,'一度だけ1HPで耐える奇跡']],
+ d:{
+'邪教の司祭':[['モンスターの召喚',async()=>{if(G.q.some(e=>e.k=='sum')){await say('今ターンはすでに召喚の仕込みがある。');return false}G.q.push({k:'sum',r:D.tier});return '召喚の仕込みを行った。'},1,'次の閲覧フェーズで召喚モンスターが現れる'],
 ['モンスターの配合',async()=>{if(D.tier>=6){await say('これ以上、強いモンスターは配合できない。');return false}
 const streak=(D.breedLast===G.turn-1)?D.breedStreak+1:1,pen=streak>1?5:0,pc=Math.max(5,RT[D.tier+1]-pen);
-const y=await ask(`配合の成功率は ${pc}%。\nやってみる？`,['配合する']);if(y<0)return false;
+const y=await ask(`配合の成功率は ${pc}%。\nやってみる？`,['配合する'],1);if(y<0)return false;
 D.breedLast=G.turn;D.breedStreak=streak;
-if(Math.random()*100<pc){D.tier++;return '配合成功！\n以前より強力なモンスターを召喚できるようになった。'+(D.tier<6?`\n（次の配合の成功率 ${RT[D.tier+1]}%）`:'\n（これ以上の配合はできない）')}return '配合失敗…'},1,'確率で召喚モンスターを強化']],
-'占い師':[['勇者軍をうらなう',async()=>{const r=rnd(3);if(r==0)return `占いの結果：勇者の体力は ${H.hp}/${H.mhp}`;
-if(r==1)return `占いの結果：仲間の種類は【${H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'}】`;
-const nt=G.turn>=G.maxTurn?'cstl':G.plan[G.pos+1];return `占いの結果：勇者の次のマスは【${NM[nt]}】`},1,'勇者の情報が1つ判明']],
-'悪魔の技師':[['トラップの設置',async()=>{const t=pick(['呪いの霧','落とし穴','毒の罠']);if(t=='呪いの霧')H.fogTurns=2;else G.q.push({k:'trap',n:t,d:t=='落とし穴'?15+rnd(11):8+rnd(5)});return `トラップ【${t}】を仕掛けた。`},1,'罠を1つ仕掛ける'],
-['スパイを送り込む',async()=>{if(G.spy){await say('すでにスパイを送り込んでいる。');return false}const i=await ask('スパイをどの職業に化けさせる？',CL);if(i<0)return false;G.spy={cls:i,turnsLeft:3};return `スパイを【${CL[i]}】に化けさせ、送り込んだ。`},1,'スパイを勇者軍に潜入させる'],
-['特訓する',async()=>{const gain=1+rnd(3);D.trainPts=(D.trainPts||0)+gain;return `魔王軍の特訓を行った。（特訓ポイント+${gain}　所持${D.trainPts}）`},1,'特訓ポイントを1〜3貯める'],
+if(Math.random()*100<pc){D.tier++;return '配合成功！\n以前より強力なモンスターを召喚できるようになった。'+(D.tier<6?`\n（次の配合の成功率 ${RT[D.tier+1]}%）`:'' )}return '配合失敗……'} ,1,'モンスターの強さを上げる'],
+'占い師':[['勇者軍をうらなう',async()=>{const r=rnd(3);if(r==0)return `占いの結果：勇者の体力は ${H.hp}/${H.mhp}`;if(r==1)return `占いの結果：仲間の種類は【${H.party.filter(p=>!p.spy).map(p=>CL[p.c]).join('、')||'なし'}】`;const nt=G.turn>=G.maxTurn?'cstl':G.plan[G.pos+1];return `占いの結果：勇者の次のマスは【${NM[nt]}】`},1,'勇者の情報が1つ判明'],
+'悪魔の技師':[['トラップの設置',async()=>{const t=pick(['呪いの霧','落とし穴','毒の罠']);if(t=='呪いの霧')H.fogTurns=2;else G.q.push({k:'trap',n:t,d:t=='落とし穴'?1:10});return `トラップ【${t}】を設置した。`},1,'次の閲覧フェーズで呪いを仕込む'],
+['スパイを送り込む',async()=>{if(G.spy){await say('すでにスパイを送り込んでいる。');return false}const i=await ask('スパイをどの職業に化けさせる？',CL);if(i<0)return false;G.spy={cls:i,turnsLeft:3};return `スパイ【${CL[i]}】を送り込んだ。\n（3ターン後に正体が露呈する）`},1,'勇者に潜入する'],
+['特訓する',async()=>{const gain=1+rnd(3);D.trainPts=(D.trainPts||0)+gain;return `魔王軍の特訓を行った。（特訓ポイント+${gain}　所持${D.trainPts}）`},1,'特訓ポイントを1〜3獲得'],
 ['スキルを交換する',async()=>exchangeSkill('d'),1,'ポイントを消費して特技を習得（最終決戦で使用）']],
-'闇の商人':[['商人を送り込む',async()=>{G.dmn=1;return '闇の商人を送り込んだ。\n（勇者の次のマスが商人マスなら、商人の品の効果が真逆かつ強烈になる）'},1,'次の商人の効果を反転・強化']],
+'闇の商人':[['商人を送り込む',async()=>{G.dmn=1;return '闇の商人を送り込んだ。\n（勇者の次のマスが商人マスなら、商人の品の効果が真逆かつ強烈になる）'},1,'次の商人マスを強化'],
 '魔王の執事':[['魔王城の構築',async()=>{D.build++;return `魔王城を構築した（構築度 ${D.build}）`},1,'構築度+1'],
-['精気を吸う',async()=>{G.q.push({k:'trap',n:'精気の吸収',d:15+rnd(16),drain:true});return '勇者の精気を吸う呪いを仕込んだ。\n（行動回数を2回分消費した）\n（効果は次の閲覧フェーズでわかる）'},2,'勇者を攻撃し半分回復（2回消費）']],
-'魔王の椅子':[['魔王の休暇',async()=>{D.bank=1;D.healTurns=2;D.vacationUsed=true;return '魔王はしばし休暇を取った。\n次のターンの行動回数が3回になり、2ターンの間HPが回復していく。'},2,'次ターン行動回数3回＋2ターンHP回復（生涯1回）',()=>D.vacationUsed?'使用済み':true],
-['空間操作',async()=>{const copied=G.tiles[G.pos];D.spaceUsed=true;G.plan[G.pos+1]=copied;return `空間を歪め、次のマスを前回と同じ【${NM[copied]}】に変えた。`},1,'前回と同じマスを次のマスにする（生涯1回）',()=>D.spaceUsed?'使用済み':(G.pos<0?'前のマスがまだない':(G.pos+1>=G.plan.length?'次のマスがない':true))]],
+['精気を吸う',async()=>{G.q.push({k:'trap',n:'精気の吸収',d:15+rnd(16),drain:true});return '勇者の精気を吸う呪いを仕込んだ。\n（行動回数を2回分消費した）';},1,'次の戦闘でHP吸収トラップ'],
+'魔王の椅子':[['魔王の休暇',async()=>{D.bank=1;D.healTurns=2;D.vacationUsed=true;return '魔王はしばし休暇を取った。\n次のターンの行動回数が3回になり、2ターンで回復する。'},1,'次のターンに行動回数+1'],
+['空間操作',async()=>{const copied=G.tiles[G.pos];D.spaceUsed=true;G.plan[G.pos+1]=copied;return `空間を歪め、次のマスを前回と同じ【${NM[copied]}】に変えた。`},1,'次のマスを改変']],
 'ドラゴンゾンビ':[['血の契約',async()=>{if(G.q.some(e=>e.k=='sum')){await say('今ターンはすでに召喚の仕込みがある。');return false}
 if(D.hp<=150){await say('魔王のHPが足りない（151以上必要）。');return false}
-D.hp-=150;G.q.push({k:'sum',t:'ドラゴンゾンビ',r:6});
-return '魔王は自らの血を捧げ、ドラゴンゾンビを召喚する契約を結んだ。\n（HPを150消費した。効果は次の閲覧フェーズでわかる）'},1,'HP150を消費し強力な召喚（通常召喚と重複不可）']]}};
+D.hp-=150;G.q.push({k:'sum',t:'ドラゴンゾンビ',r:6});return '魔王は自らの血を捧げ、ドラゴンゾンビを召喚する契約を結んだ。\n（HPを150消費した。効果は次の閲覧フェーズでわかる）'},1,'HP150を消費してドラゴンゾンビを召喚']]}};
 function talk(n){cm(false);menu(`【${n[0]}】何をする？`,[...CMD[G.side][n[0]].map(c=>{const av=c[4]?c[4]():true;if(av===false)return null;const cost=c[2]||1,desc=c[3]||'';
 let label=c[0],fn=()=>act(c);
 if(typeof av=='string'){label+=`（${av}）`;fn=()=>{}}
@@ -259,8 +241,7 @@ async function act(c){let f=c[1],k=c[0],cost=c[2]||1;
 const r=await f();if(G.over)return;if(r===false){idle();return}
 G.used.add(k);G.act-=cost;hud();
 if(G.act<=0){await say(r+'\n\n行動回数を使い切った。');if(G.over)return;endPhase()}else menu(r+`\n\n残り行動 ${G.act}回`,[['続ける',idle]])}
-/* ---- フェーズ進行 ---- */
-async function startPhase(s){G.side=s;G.used=new Set();const o=s=='d'?D:H;G.act=Math.min(3,2+o.bank);o.bank=0;room={...ROOMS[s],npcs:npcsFor(s)};scene='room';me={x:3,y:5};while(room.npcs.some(n=>n[2]==me.x&&n[3]==me.y))me.x++;hud();
+async function startPhase(s){G.side=s;G.used=new Set();const o=s=='d'?D:H;G.act=Math.min(3,2+o.bank);o.bank=0;room={...ROOMS[s],npcs:npcsFor(s)};scene='room';me={x:3,y:5};while(room.npcs.some(n=>n[2]==me.x&&n[3]==me.y)){me.x++;if(me.x>RW-3)me.x=3}
 if(s=='h'){H.fogActive=H.fogTurns>0;if(H.fogTurns>0)H.fogTurns--}
 if(s=='d'){const notes=[];
 if(D.healTurns>0){const heal=Math.round((D.mhp-D.hp)*.25);D.hp=Math.min(D.mhp,D.hp+heal);D.healTurns--;if(heal>0)notes.push(`【 魔王の休暇の加護 】\nHPが${heal}回復した。（残り${D.healTurns}ターン）`)}
@@ -275,13 +256,10 @@ if(G.pendingTrain){const{a,h}=G.pendingTrain;G.pendingTrain=null;H.atk+=a;H.mhp+
 if(G.pendingMerchant){const neg=G.pendingMerchant.neg;G.pendingMerchant=null;await merchant(neg)}
 if(G.over)return}
 idle()}
-function endPhase(){cm(false);const o=G.side=='d'?D:H;if(G.act>0)o.bank=1;
-if(G.side=='d'){G.side='';cover('【 勇者軍のターンです！ 】','プレイヤー交代してください。\n準備ができたら画面をタップしてください。',()=>startPhase('h'))}
-else{G.side='';cover('【 閲覧フェーズ 】','魔王軍・勇者軍の両プレイヤーで、一緒に画面を見てください。\n「開始する」を押すと、このターンの結果が始まります。',resolve,'[ 開始する ]',1)}}
+function endPhase(){cm(false);const o=G.side=='d'?D:H;if(G.act>0)o.bank=1;if(G.side=='d'){G.side='';cover('【 勇者軍のターンです！ 】','プレイヤー交代してください。\n準備ができたら画面をタップしてください。',()=>startPhase('h'))}else{G.side='';cover('【 閲覧フェーズ 】','魔王軍・勇者軍の両プレイヤーで、一緒に画面を見てください。\n「開始する」を押すと、このターンの結果が発生します。',()=>resolve())}}
 function dead(){if(H.hp<=0){H.hp=0;end('d');return true}return false}
 async function hurt(amount){if(amount<=0)return;
-if(H.prayerActive&&H.hp==1){H.prayerActive=false;const healed=H.mhp-1;H.hp=H.mhp;G.tH+=healed;
-await say('【 おいのりの奇跡！ 】\n女神の加護により、体力が全回復した！');return}
+if(H.prayerActive&&H.hp==1){H.prayerActive=false;const healed=H.mhp-1;H.hp=H.mhp;G.tH+=healed;await say('【 おいのりの奇跡！ 】\n女神の加護により、体力が全回復した！');return}
 H.hp-=amount;G.tD+=amount}
 function checkDemonDead(){if(D.hp<=0){D.hp=0;end('h');return true}return false}
 function heroSkillEffect(sk,base,SKS,tgt){let d,tx='勇者は特技を使った！';
@@ -293,10 +271,23 @@ else if(sk=='生命の交換'){const hh=H.hp,th=tgt.hp;H.hp=Math.min(H.mhp,th);t
 else if(sk=='魔光弾'){d=20;SKS.fixed=true;tx+='\n【魔光弾】固定20ダメージ！'}
 else if(sk=='魔光弾砲'){d=50;SKS.fixed=true;tx+='\n【魔光弾砲】固定50ダメージ！'}
 else if(sk=='勇者の眼差し'){d=base;SKS.hitGuaranteed=true;tx+='\n【勇者の眼差し】この一撃は必中！'}
-else if(sk=='4連斬り'){let tot=0,hits=0;for(let k=0;k<4;k++){const hd=Math.round(base*.25);if(!(H.fogActive&&tgt!==D&&rnd(3)==0)){tot+=hd;hits++}}d=tot;SKS.hitGuaranteed=true;tx+=`\n【4連斬り】${hits}/4回命中！`}
+else if(sk=='4連斬り'){let tot=0;for(let k=0;k<4;k++){const hd=Math.round(base*.25);if(!(H.fogActive&&tgt!==D&&rnd(3)==0)){tot+=hd}}d=tot;SKS.hitGuaranteed=true;tx+=`\n【4連斬り】${d}ダメージ`}
 else if(sk=='光闇の共存'){d=base;SKS.noDeath=true;H.coexistUsed=true;tx+='\n【光闇の共存】この戦闘は闇の侵食で死なない！'}
 else if(sk=='闇包'){d=base;SKS.lifesteal=true;tx+='\n【闇包】次のターンから、与えたダメージの25%を吸収する！'}
 else d=base;
+return{d,tx}}
+function demonSkillEffect(sk,base,DKS,target){let d=0,tx='魔王軍は特技を使った！';
+if(sk=='ためる'){d=0;DKS.charge=true;tx+='\n【ためる】次の攻撃に力を溜めている…'}
+else if(sk=='斬撃波'){d=Math.round(base*1.3)}
+else if(sk=='魔弾'){d=20;tx+='\n【魔弾】固定20ダメージ！'}
+else if(sk=='魔弾砲'){d=50;tx+='\n【魔弾砲】固定50ダメージ！'}
+else if(sk=='受け流し'){D.hp-=100;DKS.parryTurns=3;tx+='\n【受け流し】3ターンの間、攻撃を受け流す構え！（HP-100）'}
+else if(sk=='再生'){D.hp-=100;DKS.regenTurns=5;tx+='\n【再生】傷を癒す力を得た！（HP-100）'}
+else if(sk=='巨大化'){D.mhp*=2;D.hp*=2;DKS.giant=true;tx+='\n【巨大化】魔王軍のHPが倍増した！（被ダメージ2倍）'}
+else if(sk=='記憶の甦り'){if(DKS.lastSkill){tx+=`\n【記憶の甦り】前回の特技【${DKS.lastSkill}】を再発動！`;if(DKS.lastSkill=='ためる'){d=0;DKS.charge=true;}else if(DKS.lastSkill=='斬撃波'){d=Math.round(base*1.3);}else if(DKS.lastSkill=='魔弾'){d=20;}else if(DKS.lastSkill=='魔弾砲'){d=50;}}else{d=base}D.hp-=200}
+else if(sk=='全闇の吸収'){if(H.dark){H.dark=false;tx+='\n【全闇の吸収】魔王軍が闇を吸収した！勇者は闇の勇者ではなくなった。'}}
+else d=base;
+if(['ためる','斬撃波','魔弾','魔弾砲'].includes(sk))DKS.lastSkill=sk;
 return{d,tx}}
 async function fight(kind,m){const T=mst(m),x1=m.x||1;m.hp=m.mhp=Math.round(T.hp*x1);m.atk=Math.round(T.atk*x1);const sn=SP[m.t];scene='bat';
 let amul=1,dmul=1;if(H.itemDouble){H.itemDouble=false;amul=2;dmul=2}
@@ -330,31 +321,25 @@ BT=[ent(CS[cls],5,100,16),ent(HS(),5,16,88),...H.party.filter(p=>!p.spy).map((p,
 const svd0=H.prayerActive&&H.hp==1;await hurt(20);shake();if(!svd0)await note('スパイの奇襲！　勇者は20ダメージを受けた！',800);if(dead())return;
 let srd=0;
 while(hp>0&&H.hp>0){srd++;if(H.dark)await note(`🌑 闇の侵食：${srd} / 3`,500);
-let d=HA()+pb(1)*3+rnd(5);if(H.dark)d=Math.round(d*2.5);
-hp-=d;shake();await note(`勇者の反撃！ ${d}ダメージ`,600);if(hp<=0)break;
+let d=HA()+pb(1)*3+rnd(5);if(H.dark)d=Math.round(d*2.5);hp-=d;shake();await note(`勇者の反撃！ ${d}ダメージ`,600);if(hp<=0)break;
 const e=Math.max(1,T.atk-HD())+rnd(4);const svd=H.prayerActive&&H.hp==1;await hurt(e);shake();if(!svd)await note(`スパイの攻撃！ ${e}ダメージ`,700);if(dead())return;
 if(H.dark&&srd>=3&&hp>0){await say('🌑 闇の侵食が限界に到達した……\n勇者は闇に飲み込まれた。');H.hp=0;dead();return}}
 await say(hp<=0?'スパイを撃退した！':'スパイは去っていった…');await sl(200);scene='path'}
 async function resolve(){scene='path';G.tD=G.tH=0;$('hud').textContent=`ターン ${G.turn}/${G.maxTurn}　閲覧フェーズ`;
 const wasDark=H.dark;
 if(G.fruitBought){G.fruitBought=false;await say('【 魔王軍への気配 】\n勇者が「禁断の果実」を購入したようだ……')}
-if(G.darkTransformPending){G.darkTransformPending=false;
-await say('禁断の果実の効力が、勇者の体を蝕み始める……\n黒い闇のエフェクトが足元から立ち上る。');
-await note('闇が勇者を包み込むように広がっていく…',900);
-await note('一瞬、勇者の姿が完全に闇に覆われる……',900);
-H.dark=true;
-await say('闇が晴れると――\n🌑 勇者は闇の勇者になった！\n（攻撃力が大幅に上昇する代わりに、毎ターンHPを消費し、戦闘は3ターンまでしか続けられない）')}
+if(G.darkTransformPending){G.darkTransformPending=false;await say('禁断の果実の効力が、勇者の体を蝕み始める……\n黒い闇のエフェクトが足元から立ち上る。');await note('闇が勇者を包み込むように広がっていく…',900);await note('一瞬、勇者の姿が完全に闇に覆われる……',900);H.dark=true;await say('闇が晴れると――\n🌑 勇者は闇の勇者になった！\n（攻撃力が大幅に上昇する代わりに、毎ターンHPを消費し、戦闘は3ターンまでしか続かない）')}
 if(wasDark&&H.hp>0){const ero=Math.max(1,Math.round(H.mhp*.08));H.hp=Math.max(1,H.hp-ero);G.tD+=ero;await say(`🌑 闇の侵食\n最大HPの8%（${ero}）を消費した。`)}
 const spyIdx=H.party.findIndex(p=>p.spy);
-if(spyIdx>=0){const p=H.party[spyIdx];H.party.splice(spyIdx,1);await say(`【 まさかの裏切り！ 】\n仲間にした【${CL[p.c]}】は魔王軍の手先だった！`);await spyBattle(p.c);if(dead())return}
+if(spyIdx>=0){const p=H.party[spyIdx];H.party.splice(spyIdx,1);await say(`【 まさかの裏切り！ 】\n仲間にした【${CL[p.c]}】は魔王軍の手先だった！`);await spyBattle(p.c)}
 for(const q of G.q){
 if(q.k=='sum'){const sm={t:q.t||rollSummon(),r:q.r};let hmsg='';
 if(H.itemHenge){H.itemHenge=false;sm.r=Math.max(1,sm.r-1);hmsg='\n（へんげの杖の効果で、召喚モンスターのレア度が下がった！）'}
 await say(`【 魔王の仕込み発動！ 】\n召喚モンスター【${sm.t}】が勇者に襲いかかる！${hmsg}`);
 if(await trySmoke()){}else{
 LFD=0;await fight('sum',sm);if(dead())return;
-if(sm.t=='サキュバス'){const heal=Math.floor(LFD/2);if(heal>0){D.hp=Math.min(D.mhp,D.hp+heal);G.demonNote.push(`サキュバスが勇者に与えたダメージの一部を吸収し、魔王の体力が${heal}回復した。`)}}
-await say('戦闘勝利！　勇者は召喚モンスターを撃退した。')}}
+if(sm.t=='サキュバス'){const heal=Math.floor(LFD/2);if(heal>0){D.hp=Math.min(D.mhp,D.hp+heal);G.demonNote.push(`サキュバスが勇者に与えたダメージの一部を吸収し、魔王軍は${heal}回復した。`)}}}
+await say('戦闘勝利！　勇者は召喚モンスターを撃退した。')}
 else if(H.itemTrap){H.itemTrap=false;await say(`【 仕込み発動！ 】\n${q.n}！\n木こりのにんぎょうの力でトラップを回避した！`)}
 else if(H.immuneTurn==G.turn){await say(`【 仕込み発動！ 】\n${q.n}！\n勇者はトラップを回避した！`)}
 else{const td=q.d*(H.doubleTurn==G.turn?2:1);const svd=H.prayerActive&&H.hp==1;await hurt(td);
@@ -365,17 +350,10 @@ G.q=[];const t=(G.turn>=G.maxTurn)?'cstl':(H.nextTile||G.plan[G.pos+1]),cl=H.cle
 H.nextTile=null;H.cleave=false;H.cursedCave=false;G.dmn=0;H.story=Math.min(5,1+Math.floor((G.turn-1)/G.maxTurn*5));
 G.walk={a:G.pos,b:G.pos+1,t0:Date.now()};await note('勇者は次のマスへ歩き出す…',1000);G.pos++;G.tiles[G.pos]=t;G.walk=null;
 await say(`勇者が止まったマス：${NM[t]}`);
-if(t=='vil'){if(H.dark){const dmg=8+rnd(13);const svd=H.prayerActive&&H.hp==1;await hurt(dmg);if(!svd)await say(`「その姿……人間なのか……？」\n市民は闇の勇者を恐れ、攻撃してきた！\n勇者は${dmg}ダメージを受けた。`);if(dead())return}
-else{H.bonus=true;await say('勇者は村/街で一息ついた。')}}
-else if(t=='cave'){const m={t:roll(),r:Math.min(6,1+Math.floor(G.turn/G.maxTurn*6))};if(cx)m.x=1.5;
-const smk=await trySmoke();
-if(smk){}else if(cl){await say(`洞窟の【${m.t}】を、ダメージを受けずに討伐した！`);H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}
-else{LFD=0;await fight('cave',m);if(dead())return;await say('戦闘勝利！');H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}}
+if(t=='vil'){if(H.dark){const dmg=8+rnd(13);const svd=H.prayerActive&&H.hp==1;await hurt(dmg);if(!svd)await say(`「その姿……人間なのか……？」\n市民は闇の勇者を恐れ、${dmg}ダメージを与えた。`)}else{H.bonus=true;await say('勇者は村/街で一息ついた。')}}
+else if(t=='cave'){const m={t:roll(),r:Math.min(6,1+Math.floor(G.turn/G.maxTurn*6))};if(cx)m.x=1.5;const smk=await trySmoke();if(smk){}else if(cl){await say(`洞窟の【${m.t}】を、ダメージを受けずに討伐した！`);H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}else{LFD=0;await fight('cave',m);if(dead())return;await say('戦闘勝利！');H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}}
 else if(t=='fnt'){const h=Math.min(30,H.mhp-H.hp);H.hp+=h;G.tH+=h;await say(`精霊の泉の力で、勇者の体力が${h}回復した。`)}
-else if(t=='chst'){const r=rnd(3);
-if(r==0){if(H.gear<5)H.gear++;else H.atk+=3;await say('勇者は宝箱を開けた。')}
-else if(r==1){const h=Math.min(20,H.mhp-H.hp);H.hp+=h;G.tH+=h;await say(`宝箱から回復の光！　勇者の体力が${h}回復した。`)}
-else{await say('宝箱はミミックだった！');const smk=await trySmoke();if(!smk){LFD=0;await fight('cave',{t:'ミミック',r:2+Math.floor(G.turn/G.maxTurn*5)});if(dead())return;await say('戦闘勝利！')}}}
+else if(t=='chst'){const r=rnd(3);if(r==0){if(H.gear<5)H.gear++;else H.atk+=3;await say('勇者は宝箱を開けた。')}else if(r==1){const h=Math.min(20,H.mhp-H.hp);H.hp+=h;G.tH+=h;await say(`宝箱から回復の光！　勇者の体力が${h}回復した。`)}else{await say('宝箱はミミックだった！');const smk=await trySmoke();if(!smk){LFD=0;await fight('cave',{t:'ミミック',r:2+Math.floor(G.turn/G.maxTurn*5)});if(dead())return;await say('戦闘勝利！');H.atk+=2;H.mhp+=3;H.hp+=3;G.loot.push('洞窟のモンスター討伐：攻撃力+2、最大HP+3')}}}
 else if(t=='mer'){G.pendingMerchant={neg:dm};await say('勇者は旅の商人に出会った。\n（品定めは次の勇者ターンの初めに行う）')}
 else if(t=='qry'){const g=1+H.quarryLv;G.pendingQuarry=(G.pendingQuarry||0)+g;await say('勇者は採石場を見つけた。\n（結果は次の勇者ターンの初めにわかる）')}
 else if(t=='trg'){const a=H.trainLv,h=H.trainLv*3;G.pendingTrain={a,h};await say('勇者は訓練場を見つけた。\n（結果は次の勇者ターンの初めにわかる）')}
@@ -398,62 +376,109 @@ const N=[['HPが30〜150減る',()=>{const v=(10+rnd(41))*3;H.hp-=v;G.tD+=v;retu
 ['次のマスを必ず洞窟マスにする',()=>{H.nextTile='cave';return '次のマスは必ず洞窟になる…'}],
 ['次のマスが洞窟なら、敵が1.5倍の強さになる',()=>{H.cursedCave=true;return '次のマスが洞窟なら、敵が1.5倍強くなる…'}]];
 const ch=(neg?N:A).map(o=>[Math.random(),o]).sort((a,b)=>a[0]-b[0]).slice(0,3).map(a=>a[1]);
-const i=await ask('【 旅の商人 】'+(neg?'\n闇の商人の呪いで、すべての効果が真逆かつ強烈になっている！\n':'')+'3つの品から1つを選んでください。',ch.map(o=>o[0]),1);
+const i=await ask('【 旅の商人 】'+(neg?`\n闇の商人の呪いで、すべての効果が真逆かつ強烈になっている！\n`:'')+'3つの品から1つを選んでください。',ch.map(([l])=>l),1);
 await say(ch[i][1]());if(H.hp<=0)dead()}
+function getFinaleCommandPool(side,currentPlan=[]){
+  const pool=[{id:'attack',label:'通常攻撃',type:'attack'},{id:'guard',label:'ぼうぎょ',type:'guard'}];
+  const list=side=='h'?H.skills:D.skills;
+  const skillBook=side=='h'?HSK:DSK;
+  const used=new Set((currentPlan||[]).filter(v=>v&&v.startsWith('skill:')).map(v=>v.replace(/^skill:/,'')));
+  for(const name of list){
+    const sk=skillBook.find(s=>s.n==name);
+    if(sk && !used.has(name))pool.push({id:`skill:${name}`,label:name,type:'skill',skill:sk});
+  }
+  return pool;
+}
+async function chooseFinalePlanUI(side){
+  const plan=Array(10).fill(null);
+  const sideName=side=='h'?'勇者':'魔王';
+  return new Promise(resolve=>{
+    const render=()=>{
+      const rows=[];
+      for(let i=0;i<10;i++){
+        const selected=plan[i]?plan[i].label:'未選択';
+        rows.push([`${i+1}ターン：${selected}`,async()=>{
+          const pool=getFinaleCommandPool(side,plan);
+          const opts=pool.map(cmd=>cmd.type=='skill'?`${cmd.label}（${cmd.skill.x}）`:cmd.label);
+          const idx=await ask(`第${i+1}ターンの行動を選んでください。`,opts,1);
+          if(idx>=0){plan[i]=pool[idx];render();}
+        },'']);
+      }
+      if(plan.every(Boolean))rows.push(['これでOK！',()=>resolve(plan.map(p=>p.id)),'']);
+      setBtns(rows);
+      $('msg').textContent=`${sideName}の最終決戦行動を10ターン分選択してください。\n相手には見せません。`;
+      $('bi').textContent=`最終決戦準備：${sideName}側`;
+    };
+    render();
+  });
+}
 async function finale(){
-await new Promise(r=>cover('【 最終決戦：魔王城に到達！ 】','勇者軍・魔王軍 両プレイヤーは画面に注目してください。\n世界の命運をかけた、最後の戦いが始まります。',r,'[ 最後の戦いを始める ]',1));
-scene='bat';const gs=[rollSummon(),rollSummon()].map(t=>({t,r:D.tier})),dd=5+D.build*2;
-BT=[ent('demon',5,104,10),...gs.map((m,i)=>ent(SP[m.t],4,20+i*34,26)),ent(HS(),5,16,88),...H.party.filter(p=>!p.spy).map((p,i)=>ent(CS[p.c],3,60+i*26,112))];
-$('hud').textContent='最終決戦　魔王城';let rd=0,pl=H.plan,charge=false;H.plan=null;
-let SKS={gb:0,guardDmg:0,reflect:0,lifesteal:false,noDeath:false};
-let DKS={charge:false,giant:false,parryTurns:0,regenTurns:0,lastSkill:null};
-while(true){rd++;let d,tx='勇者の攻撃！';SKS.hitGuaranteed=false;SKS.guarding=false;SKS.fixed=false;const base=Math.max(1,HA()-dd)+pb(1)*3+rnd(5);
-if(H.dark)await note(`🌑 闇の侵食：${rd} / 3`,500);
-if(DKS.regenTurns>0){D.hp=Math.min(D.mhp,D.hp+50);DKS.regenTurns--;await note(`【再生】魔王軍のHPが50回復した。（残り${DKS.regenTurns}ターン）`,500)}
-if(SKS.gb==1){d=0;tx='我慢を続けている……';SKS.gb=2;SKS.guarding=true}
-else if(SKS.gb==2){d=Math.round(SKS.guardDmg*3);tx='我慢の反動が炸裂した！';SKS.gb=0;SKS.guardDmg=0}
-else if(charge){d=Math.round(base*2.5);tx='ためた力を解放！';charge=false}
-else if(rd==1&&pl=='gan')d=Math.round(base*1.3);
-else if(rd==1&&pl=='iro'&&H.skills.length){const avail=H.skills.filter(s=>!(s=='光闇の共存'&&H.coexistUsed));
-if(avail.length){const sk=pick(avail),r=heroSkillEffect(sk,base,SKS,D);d=r.d;tx=r.tx;if(SKS.charge)charge=true}else d=base}
-else d=base;
-if(H.dark&&d>0&&!SKS.fixed)d=Math.round(d*2.5);
-if(DKS.giant&&d>0)d=Math.round(d*2);
-if(DKS.parryTurns>0){DKS.parryTurns--;if(rnd(10)<4){d=0;await note('【受け流し】魔王軍が攻撃を受け流した！',500)}}
-D.hp-=d;shake();await note(d?`${tx} ${d}ダメージ`:tx,650);
-if(SKS.lifesteal&&d>0&&rd>1){const heal=Math.round(d*.25);H.hp=Math.min(H.mhp,H.hp+heal);await note(`【闇包】${heal}回復した！`,500)}
-if(D.hp<=0){end('h');return}
-let e=Math.max(1,10+D.build-HD())+gs.reduce((s,m)=>s+Math.max(1,Math.round(mst(m).atk*.5)-HD()),0),etx='魔王軍の攻撃！';
-const busy=DKS.parryTurns>0||DKS.regenTurns>0;
-if(DKS.charge){e=Math.round(e*2.5);etx='魔王軍がためた力を解放！';DKS.charge=false}
-else if(!busy&&D.skills.length&&rnd(10)<4){
-const cand=D.skills.filter(sk=>{if(sk=='記憶の甦り')return DKS.lastSkill&&D.hp>200;if(sk=='受け流し'||sk=='再生')return D.hp>100;if(sk=='全闇の吸収')return H.dark;return true});
-if(cand.length){let dsk=pick(cand);etx='魔王軍は特技を使った！';
-if(dsk=='受け流し'){D.hp-=100;DKS.parryTurns=3;etx+='\n【受け流し】3ターンの間、攻撃を受け流す構え！（HP-100）'}
-else if(dsk=='再生'){D.hp-=100;DKS.regenTurns=5;etx+='\n【再生】傷を癒す力を得た！（HP-100）'}
-else if(dsk=='巨大化'){D.mhp*=2;D.hp*=2;DKS.giant=true;etx+='\n【巨大化】魔王軍のHPが倍増した！（被ダメージ2倍）'}
-else{if(dsk=='記憶の甦り'){etx+=`\n【記憶の甦り】前回の特技【${DKS.lastSkill}】を再発動！（HP-200）`;D.hp-=200;dsk=DKS.lastSkill}
-if(dsk=='ためる'){e=0;DKS.charge=true;etx+='\n【ためる】次の攻撃に力を溜めている…'}
-else if(dsk=='斬撃波'){e=Math.round(e*1.3)}
-else if(dsk=='魔弾'){e=20;etx+='\n【魔弾】固定20ダメージ！'}
-else if(dsk=='魔弾砲'){e=50;etx+='\n【魔弾砲】固定50ダメージ！'}
-else if(dsk=='全闇の吸収'){if(H.dark){H.dark=false;etx+='\n【全闇の吸収】魔王軍が闇を吸収した！勇者は闇の勇者ではなくなった。'}}
-if(['ためる','斬撃波','魔弾','魔弾砲'].includes(dsk))DKS.lastSkill=dsk}}}
-if(pl=='inochi'&&rnd(3)==0)e=0;
-const svd=H.prayerActive&&H.hp==1&&e>0;await hurt(e);
-if(SKS.guarding)SKS.guardDmg+=(svd?0:e);
-shake();if(!svd)await note(e?`${etx}　勇者は${e}ダメージ`:`${etx}\n勇者は守り切った！`,900);
-if(SKS.reflect>0){const refDmg=svd?0:e;if(refDmg>0){D.hp-=refDmg;shake();await note(`【やり返し】${refDmg}ダメージを跳ね返した！`,500);if(D.hp<=0){end('h');return}}SKS.reflect--}
-if(dead())return;
-if(H.dark&&!SKS.noDeath&&rd>=3&&D.hp>0){await say('🌑 闇の侵食が限界に到達した……\n勇者は闇に飲み込まれた。');H.hp=0;dead();return}}}
-function end(w){if(G.over)return;G.over=true;cm(false);cover(w=='h'?'【 勇者軍の勝利！ 】':'【 魔王軍の勝利！ 】',w=='h'?'見事、魔王の討伐に成功した！\n世界に再び光と平和が戻った。\n勇者プレイヤーの勝ちです！':'勇者軍は力尽き、全滅した…\n世界は永遠の闇に包まれた。\n魔王プレイヤーの勝ちです！',()=>location.reload(),'もう一度遊ぶ')}
-/* ---- 開始 ---- */
-function title(){const t=$('tt'),c=$('tc').getContext('2d'),t0=Date.now();c.clearRect(0,0,160,64);sp('demon',12,8,6,c);sp('cstl',64,16,4,c);sp('hero',100,8,6,c);
-t.style.display='flex';t.onclick=()=>{if(Date.now()-t0<400)return;t.style.display='none';rules()}}
-function rules(){cover('【 遊び方 】',`・1台のスマホを交代で操作する、魔王軍 vs 勇者軍の2人対戦。\n・1ターンの流れ：魔王の行動→勇者の行動→閲覧フェーズ（結果を2人で確認）。\n・行動回数は1ターン2回（余らせると1回だけ次に持ち越し、最大3回）。同じ行動は1ターンに1回まで。\n・基地はドラッグで移動、NPCに話しかけてコマンドを選ぶ。作戦やステータスは相手に秘密なので、待機側は画面を見ないこと。\n・最終ターンは魔王城で自動の最終決戦。先にHPが0になった方の負け。`,
-turnSelect,'タップして始める');$('cb').style.textAlign='left'}
+  await new Promise(r=>cover('【 準備はいいですか？ 】','最終決戦前の10ターン行動を決めます。\n勇者・魔王はそれぞれ相手に見せずに行動を選択し、\n全ターンを埋めたら「これでOK！」を押してください。',()=>r(),'開始する'));
+  const heroPlan=await chooseFinalePlanUI('h');
+  const demonPlan=await chooseFinalePlanUI('d');
+  H.finalePlan=heroPlan;D.finalePlan=demonPlan;
+  await say('勇者と魔王の行動が固まりました。\n最終決戦を開始します。');
+  scene='bat';const gs=[rollSummon(),rollSummon()].map(t=>({t,r:D.tier})),dd=5+D.build*2;
+  BT=[ent('demon',5,104,10),...gs.map((m,i)=>ent(SP[m.t],4,20+i*34,26)),ent(HS(),5,16,88),...H.party.filter(p=>!p.spy).map((p,i)=>ent(CS[p.c],3,60+i*26,112))];
+  $('hud').textContent='最終決戦　魔王城';let rd=0,pl=H.plan,charge=false;H.plan=null;
+  let SKS={gb:0,guardDmg:0,reflect:0,lifesteal:false,noDeath:false};
+  let DKS={charge:false,giant:false,parryTurns:0,regenTurns:0,lastSkill:null,guardReady:false,guardActive:false};
+  while(true){
+    rd++;
+    const heroAction=H.finalePlan&&H.finalePlan[rd-1]?H.finalePlan[rd-1]:'attack';
+    const demonAction=D.finalePlan&&D.finalePlan[rd-1]?D.finalePlan[rd-1]:'attack';
+    H.guardActive=!!H.guardReady;H.guardReady=false;D.guardActive=!!D.guardReady;D.guardReady=false;
+    let d,tx='勇者の攻撃！';SKS.hitGuaranteed=false;SKS.guarding=false;SKS.fixed=false;const base=Math.max(1,HA()-dd)+pb(1)*3+rnd(5);
+    if(H.dark)await note(`🌑 闇の侵食：${rd} / 3`,500);
+    if(DKS.regenTurns>0){D.hp=Math.min(D.mhp,D.hp+50);DKS.regenTurns--;await note(`【再生】魔王軍のHPが50回復した。（残り${DKS.regenTurns}ターン）`,500)}
+    if(SKS.gb==1){d=0;tx='我慢を続けている……';SKS.gb=2;SKS.guarding=true}
+    else if(SKS.gb==2){d=Math.round(SKS.guardDmg*3);tx='我慢の反動が炸裂した！';SKS.gb=0;SKS.guardDmg=0}
+    else if(charge){d=Math.round(base*2.5);tx='ためた力を解放！';charge=false}
+    else if(heroAction==='guard'){d=0;tx='勇者はぼうぎょを選んだ。次のターン、受けるダメージは30%減少する。';H.guardReady=true}
+    else if(heroAction.startsWith('skill:')){const sk=heroAction.replace(/^skill:/,'');const r=heroSkillEffect(sk,base,SKS,D);d=r.d;tx=r.tx;if(SKS.charge)charge=true}
+    else if(rd==1&&pl=='gan')d=Math.round(base*1.3);
+    else if(rd==1&&pl=='iro'&&H.skills.length){const avail=H.skills.filter(s=>!(s=='光闇の共存'&&H.coexistUsed));if(avail.length){const sk=pick(avail),r=heroSkillEffect(sk,base,SKS,D);d=r.d;tx=r.tx;if(SKS.charge)charge=true}else d=base}
+    else d=base;
+    if(H.dark&&d>0&&!SKS.fixed)d=Math.round(d*2.5);
+    if(DKS.giant&&d>0)d=Math.round(d*2);
+    if(DKS.parryTurns>0){DKS.parryTurns--;if(rnd(10)<4){d=0;await note('【受け流し】魔王軍が攻撃を受け流した！',500)}}
+    if(D.guardActive){d=Math.round(d*0.7);tx+='\n【ぼうぎょ】ダメージ30%軽減';}
+    D.hp-=d;shake();await note(d?`${tx} ${d}ダメージ`:tx,650);
+    if(SKS.lifesteal&&d>0&&rd>1){const heal=Math.round(d*.25);H.hp=Math.min(H.mhp,H.hp+heal);await note(`【闇包】${heal}回復した！`,500)}
+    if(D.hp<=0){end('h');return}
+    let e=Math.max(1,10+D.build-HD())+gs.reduce((s,m)=>s+Math.max(1,Math.round(mst(m).atk*.5)-HD()),0),etx='魔王軍の攻撃！';
+    const busy=DKS.parryTurns>0||DKS.regenTurns>0;
+    if(demonAction==='guard'){e=0;etx='魔王軍はぼうぎょを選んだ。次のターン、受けるダメージは30%減少する。';D.guardReady=true}
+    else if(demonAction.startsWith('skill:')){const sk=demonAction.replace(/^skill:/,'');const res=demonSkillEffect(sk,e,DKS,H);e=res.d;etx=res.tx;if(DKS.charge){e=Math.round(e*2.5);etx='魔王軍がためた力を解放！';DKS.charge=false}}
+    else if(DKS.charge){e=Math.round(e*2.5);etx='魔王軍がためた力を解放！';DKS.charge=false}
+    else if(!busy&&D.skills.length&&rnd(10)<4){
+      const cand=D.skills.filter(sk=>{if(sk=='記憶の甦り')return DKS.lastSkill&&D.hp>200;if(sk=='受け流し'||sk=='再生')return D.hp>100;if(sk=='全闇の吸収')return H.dark;return true});
+      if(cand.length){let dsk=pick(cand);etx='魔王軍は特技を使った！';
+      if(dsk=='受け流し'){D.hp-=100;DKS.parryTurns=3;etx+='\n【受け流し】3ターンの間、攻撃を受け流す構え！（HP-100）'}
+      else if(dsk=='再生'){D.hp-=100;DKS.regenTurns=5;etx+='\n【再生】傷を癒す力を得た！（HP-100）'}
+      else if(dsk=='巨大化'){D.mhp*=2;D.hp*=2;DKS.giant=true;etx+='\n【巨大化】魔王軍のHPが倍増した！（被ダメージ2倍）'}
+      else{if(dsk=='記憶の甦り'){etx+=`\n【記憶の甦り】前回の特技【${DKS.lastSkill}】を再発動！（HP-200）`;D.hp-=200;dsk=DKS.lastSkill}
+      if(dsk=='ためる'){e=0;DKS.charge=true;etx+='\n【ためる】次の攻撃に力を溜めている…'}
+      else if(dsk=='斬撃波'){e=Math.round(e*1.3)}
+      else if(dsk=='魔弾'){e=20;etx+='\n【魔弾】固定20ダメージ！'}
+      else if(dsk=='魔弾砲'){e=50;etx+='\n【魔弾砲】固定50ダメージ！'}
+      else if(dsk=='全闇の吸収'){if(H.dark){H.dark=false;etx+='\n【全闇の吸収】魔王軍が闇を吸収した！勇者は闇の勇者ではなくなった。'}}
+      if(['ためる','斬撃波','魔弾','魔弾砲'].includes(dsk))DKS.lastSkill=dsk}}}
+    if(pl=='inochi'&&rnd(3)==0)e=0;
+    if(H.guardActive){e=Math.round(e*0.7);etx+='\n【ぼうぎょ】ダメージ30%軽減';}
+    const svd=H.prayerActive&&H.hp==1&&e>0;await hurt(e);
+    if(SKS.guarding)SKS.guardDmg+=(svd?0:e);
+    shake();if(!svd)await note(e?`${etx}　勇者は${e}ダメージ`:`${etx}\n勇者は守り切った！`,900);
+    if(SKS.reflect>0){const refDmg=svd?0:e;if(refDmg>0){D.hp-=refDmg;shake();await note(`【やり返し】${refDmg}ダメージを跳ね返した！`,500);if(D.hp<=0){end('h');return}}SKS.reflect--}
+    if(dead())return;
+    if(H.dark&&!SKS.noDeath&&rd>=3&&D.hp>0){await say('🌑 闇の侵食が限界に到達した……\n勇者は闇に飲み込まれた。');H.hp=0;dead();return}
+    H.guardActive=false;D.guardActive=false;
+  }
+}
+function end(w){if(G.over)return;G.over=true;cm(false);cover(w=='h'?'【 勇者軍の勝利！ 】':'【 魔王軍の勝利！ 】',w=='h'?'見事、魔王の討伐に成功した！\n世界に平和が戻る。':'勇者は討伐に失敗した……\n魔王の支配が続く。',()=>{},'もう一度遊ぶ');}
+function title(){const t=$('tt'),c=$('tc').getContext('2d'),t0=Date.now();c.clearRect(0,0,160,64);sp('demon',12,8,6,c);sp('cstl',64,16,4,c);sp('hero',100,8,6,c);t.style.display='flex';t.onclick=()=>{if(Date.now()-t0<400)return;t.style.display='none';rules()}}
+function rules(){cover('【 遊び方 】',`・1台のスマホを交代で操作する、魔王軍 vs 勇者軍の2人対戦。\n・1ターンの流れ：魔王の行動→勇者の行動→閲覧フェーズ。\n・通常ターンでは、「仲間を集める」「特訓」などが選べる。\n・最終決戦では、10ターン分の行動を事前に選んで勝負する。`,()=>turnSelect(),'タップして始める');$('cb').style.textAlign='left'}
 async function turnSelect(){scene='vs';const i=await ask('ターン数を選んでください。',['10ターン（短め）','20ターン（じっくり）'],1);
-G.maxTurn=[10,20][i];G.plan=Array.from({length:G.maxTurn-1},()=>planPick());
-cover('【 魔王軍のターンです！ 】','魔王プレイヤーに端末を渡してください。\n準備ができたら画面をタップしてください。',()=>startPhase('d'))}
+G.maxTurn=[10,20][i];G.plan=Array.from({length:G.maxTurn-1},()=>planPick());cover('【 魔王軍のターンです！ 】','魔王プレイヤーに端末を渡してください。\n準備ができたら画面をタップしてください。',()=>startPhase('d'))}
 hud();title();
 </script></body></html>
